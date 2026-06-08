@@ -96,6 +96,13 @@
     .toast.show { opacity:1; }
     .empty   { font-size:13px; color:var(--text-3); padding:1.5rem 0; text-align:center; }
     .loading { font-size:13px; color:var(--text-3); padding:1rem 0; text-align:center; }
+
+    /* Full Screen Splash Overlay */
+    .splash-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:var(--green); color:#fff; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; }
+    .splash-overlay i { font-size:80px; margin-bottom:1rem; animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .splash-overlay h2 { font-size:28px; font-weight:500; margin-bottom:0.5rem; }
+    .splash-overlay p { font-size:16px; opacity:0.85; }
+    @keyframes scaleUp { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
   </style>
 </head>
 <body>
@@ -208,6 +215,13 @@
   </div>
 
 </div>
+
+<div class="splash-overlay" id="splash-screen">
+  <i class="ti ti-circle-check"></i>
+  <h2 id="splash-title">Welcome!</h2>
+  <p>You're all checked in.</p>
+</div>
+
 <div class="toast ok" id="toast"></div>
 
 <script type="module">
@@ -387,7 +401,6 @@ function renderRoster() {
   } else {
     const q = document.getElementById('search').value.trim().toLowerCase();
     
-    // REQUIRE AT LEAST ONE CHARACTER FOR NAME SEARCH
     if (q.length < 1) {
       el.innerHTML = '<div class="empty">Type a name to search…</div>';
       return;
@@ -442,9 +455,35 @@ window.checkIn = async function (id) {
       isNew: m.isNew || false, ts: Date.now()
     });
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
-    showToast('✓ ' + fullName + ' checked in');
+    
+    // TRIGGER FULL SCREEN GREEN SPLASH
+    const firstName = m.firstName || fullName.split(' ')[0];
+    triggerSplash(firstName);
+    
+    // Clear search bar back to blank state ready for next person
+    document.getElementById('search').value = '';
+    renderRoster();
+    
   } catch (e) { showToast('Check-in failed', 'err'); console.error(e); }
 };
+
+// ── Splash & Toast Helpers ────────────────────────────────────────────────────
+
+function triggerSplash(firstName) {
+  const splash = document.getElementById('splash-screen');
+  document.getElementById('splash-title').textContent = 'Welcome, ' + firstName + '!';
+  splash.style.display = 'flex';
+  
+  setTimeout(() => {
+    splash.style.display = 'none';
+  }, 2500);
+}
+
+function showToast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
 
 // ── Add member ────────────────────────────────────────────────────────────────
 
@@ -487,14 +526,6 @@ window.addMember = async function () {
     await window.checkIn(ref.id);
   } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
 };
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function showToast(msg, type = 'ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 2400);
-}
 
 window.showTab = function (tab) {
   ['checkin','tonight'].forEach(t => {
