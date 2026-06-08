@@ -110,8 +110,8 @@
   </div>
 
   <div class="tab-row">
-    <button class="tab active" id="tab-checkin">Check in</button>
-    <button class="tab"        id="tab-tonight">Tonight</button>
+    <button class="tab active" id="tab-checkin" onclick="showTab('checkin')">Check in</button>
+    <button class="tab"        id="tab-tonight" onclick="showTab('tonight')">Tonight</button>
   </div>
 
   <div id="view-checkin">
@@ -127,20 +127,21 @@
       </select>
 
       <div class="seg">
-        <button id="seg-name"  class="active">Find by name</button>
-        <button id="seg-phone">Find by phone</button>
+        <button id="seg-name"  class="active" onclick="setSearchMode('name')">Find by name</button>
+        <button id="seg-phone"            onclick="setSearchMode('phone')">Find by phone</button>
       </div>
 
       <div class="search-wrap">
         <i class="ti ti-search" id="search-icon"></i>
-        <input type="text" id="search" placeholder="Search your name…" autocomplete="off" />
+        <input type="text" id="search" placeholder="Search your name…"
+               oninput="onSearchInput()" autocomplete="off" />
       </div>
 
       <div class="roster" id="roster">
         <div class="loading">Connecting…</div>
       </div>
 
-      <button class="btn-new" id="btn-new-member">
+      <button class="btn-new" onclick="openNewMemberForm()">
         <i class="ti ti-user-plus" style="font-size:16px;"></i> New member
       </button>
     </div>
@@ -148,26 +149,34 @@
     <div id="new-member-form" class="form-view" style="display:none;">
       <div class="form-header">
         <h2>New member</h2>
-        <button class="btn-ghost" id="btn-cancel-form-top">
+        <button class="btn-ghost" onclick="closeNewMemberForm()">
           <i class="ti ti-x" style="font-size:14px;"></i> Cancel
         </button>
       </div>
 
       <div class="field">
-        <label>Full name <span style="color:var(--red);">*</span></label>
-        <input type="text" id="new-name" placeholder="First Last" autocomplete="off" />
-        <p class="field-err" id="name-err">Please enter a name.</p>
+        <label>First name <span style="color:var(--red);">*</span></label>
+        <input type="text" id="new-first-name" placeholder="First name" autocomplete="off" oninput="clearErr('first-name-err')" />
+        <p class="field-err" id="first-name-err">Please enter a first name.</p>
+      </div>
+
+      <div class="field">
+        <label>Last name <span style="color:var(--red);">*</span></label>
+        <input type="text" id="new-last-name" placeholder="Last name" autocomplete="off" oninput="clearErr('last-name-err')" />
+        <p class="field-err" id="last-name-err">Please enter a last name.</p>
       </div>
 
       <div class="field">
         <label>Email <span style="color:var(--text-3);font-weight:400;">(admin only)</span></label>
-        <input type="email" id="new-email" placeholder="email@example.com" autocomplete="off" />
+        <input type="email" id="new-email" placeholder="email@example.com" autocomplete="off"
+               oninput="clearErr('email-err')" />
         <p class="field-err" id="email-err">Enter a valid email address (e.g. name@example.com).</p>
       </div>
 
       <div class="field">
         <label>Phone <span style="color:var(--text-3);font-weight:400;">(for check-in lookup)</span></label>
-        <input type="tel" id="new-phone" placeholder="(555) 123-4567" autocomplete="off" />
+        <input type="tel" id="new-phone" placeholder="(555) 123-4567" autocomplete="off"
+               oninput="onPhoneInput(event)" />
         <p class="field-hint">Used to find yourself at future events. Stored privately.</p>
         <p class="field-err" id="phone-err">Enter a 10-digit phone number.</p>
       </div>
@@ -182,8 +191,8 @@
       </div>
 
       <div class="form-actions">
-        <button class="btn btn-primary" id="btn-submit-member">Add &amp; check in</button>
-        <button class="btn btn-outline" id="btn-cancel-form-bottom" style="width:100%;">Cancel</button>
+        <button class="btn btn-primary" onclick="addMember()">Add &amp; check in</button>
+        <button class="btn btn-outline" onclick="closeNewMemberForm()" style="width:100%;">Cancel</button>
       </div>
     </div>
 
@@ -250,36 +259,37 @@ async function hashPhone(raw) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function onPhoneInput(e) {
+window.onPhoneInput = function (e) {
   const cursor = e.target.selectionStart;
   const prev   = e.target.value;
   const formatted = formatPhone(prev);
   e.target.value = formatted;
+  // keep cursor roughly correct
   e.target.setSelectionRange(Math.min(cursor, formatted.length), Math.min(cursor, formatted.length));
   clearErr('phone-err');
-}
+};
 
 // ── Validation ────────────────────────────────────────────────────────────────
 
 function isValidEmail(email) {
-  if (!email) return true;
+  if (!email) return true;           // email is optional
   const at = email.indexOf('@');
-  if (at < 1) return false;
+  if (at < 1) return false;          // '@' must exist and not be the first char
   const after = email.slice(at + 1);
-  return after.includes('.');
+  return after.includes('.');        // domain must contain a dot
 }
 
 function isValidPhone(val) {
-  if (!val) return true;
+  if (!val) return true;             // phone is optional
   return digitsOnly(val).length === 10;
 }
 
-function clearErr(id) {
+window.clearErr = function (id) {
   document.getElementById(id).classList.remove('show');
-  const fieldName = id.replace('-err', '');
-  const input = document.getElementById('new-' + fieldName);
+  const inputId = 'new-' + id.replace('-err', '');
+  const input = document.getElementById(inputId);
   if (input) input.classList.remove('error');
-}
+};
 
 function showErr(id, inputId) {
   document.getElementById(id).classList.add('show');
@@ -289,24 +299,26 @@ function showErr(id, inputId) {
 
 // ── New member form visibility ────────────────────────────────────────────────
 
-function openNewMemberForm() {
+window.openNewMemberForm = function () {
   document.getElementById('checkin-main').style.display   = 'none';
   document.getElementById('new-member-form').style.display = '';
-  document.getElementById('new-name').focus();
-}
+  document.getElementById('new-first-name').focus();
+};
 
-function closeNewMemberForm() {
+window.closeNewMemberForm = function () {
   document.getElementById('new-member-form').style.display = 'none';
   document.getElementById('checkin-main').style.display   = '';
-  ['new-name','new-email','new-phone','new-age'].forEach(id => {
+  // clear form
+  ['new-first-name','new-last-name','new-email','new-phone','new-age'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
     el && el.classList.remove('error');
   });
-  ['name-err','email-err','phone-err'].forEach(id => {
-    document.getElementById(id).classList.remove('show');
+  ['first-name-err','last-name-err','email-err','phone-err'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
   });
-}
+};
 
 // ── Data listeners ────────────────────────────────────────────────────────────
 
@@ -323,7 +335,7 @@ onSnapshot(query(collection(db, 'checkins'), where('date', '==', TODAY)), snap =
 
 // ── Search mode ───────────────────────────────────────────────────────────────
 
-function setSearchMode(mode) {
+window.setSearchMode = function (mode) {
   searchMode = mode;
   phoneSearchHash = null;
   document.getElementById('seg-name').className  = mode === 'name'  ? 'active' : '';
@@ -341,16 +353,24 @@ function setSearchMode(mode) {
     icon.className  = 'ti ti-search';
   }
   renderRoster();
-}
+};
 
-async function onSearchInput() {
+window.onSearchInput = async function () {
   if (searchMode === 'phone') {
     phoneSearchHash = await hashPhone(document.getElementById('search').value);
   }
   renderRoster();
-}
+};
 
 // ── Roster render ─────────────────────────────────────────────────────────────
+
+function maskName(n) {
+  const parts = n.trim().split(' ');
+  if (parts.length > 1) {
+    return parts[0] + ' ' + parts[parts.length - 1][0] + '.';
+  }
+  return n;
+}
 
 function initials(n) {
   return n.trim().split(' ').map(p => p[0] || '').join('').toUpperCase().slice(0, 2);
@@ -380,9 +400,11 @@ function renderRoster() {
 
   el.innerHTML = filtered.map(m => {
     const ci = isCI(m.id);
-    return '<button class="member-btn ' + (ci ? 'ci' : '') + '" data-id="' + m.id + '">' +
+    const displayName = searchMode === 'phone' ? maskName(m.name) : m.name;
+    
+    return '<button class="member-btn ' + (ci ? 'ci' : '') + '" onclick="checkIn(\'' + m.id + '\')">' +
       '<div class="avatar ' + (ci ? 'green' : '') + '">' + initials(m.name) + '</div>' +
-      '<div style="flex:1;"><div class="member-name">' + m.name + '</div></div>' +
+      '<div style="flex:1;"><div class="member-name">' + displayName + '</div></div>' +
       (ci ? '<i class="ti ti-check check-icon"></i>' : '') +
       '</button>';
   }).join('');
@@ -404,7 +426,7 @@ function renderSummary() {
 
 // ── Check in ──────────────────────────────────────────────────────────────────
 
-async function checkIn(id) {
+window.checkIn = async function (id) {
   if (isCI(id)) { showToast('Already checked in', 'err'); return; }
   const event = document.getElementById('event-type').value;
   const m = rosterCache.find(r => r.id === id);
@@ -417,24 +439,27 @@ async function checkIn(id) {
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     showToast('✓ ' + m.name + ' checked in');
   } catch (e) { showToast('Check-in failed', 'err'); console.error(e); }
-}
+};
 
 // ── Add member ────────────────────────────────────────────────────────────────
 
-async function addMember() {
-  const name  = document.getElementById('new-name').value.trim();
-  const email = document.getElementById('new-email').value.trim();
-  const phone = document.getElementById('new-phone').value.trim();
-  const age   = document.getElementById('new-age').value;
+window.addMember = async function () {
+  const firstName = document.getElementById('new-first-name').value.trim();
+  const lastName  = document.getElementById('new-last-name').value.trim();
+  const email     = document.getElementById('new-email').value.trim();
+  const phone     = document.getElementById('new-phone').value.trim();
+  const age       = document.getElementById('new-age').value;
 
   // Validate
   let valid = true;
-  if (!name)              { showErr('name-err',  'new-name');  valid = false; }
+  if (!firstName)         { showErr('first-name-err', 'new-first-name'); valid = false; }
+  if (!lastName)          { showErr('last-name-err',  'new-last-name');  valid = false; }
   if (!isValidEmail(email)) { showErr('email-err', 'new-email'); valid = false; }
   if (!isValidPhone(phone)) { showErr('phone-err', 'new-phone'); valid = false; }
   if (!valid) return;
 
   try {
+    const name = firstName + ' ' + lastName;
     const phoneHash = phone ? await hashPhone(phone) : null;
     const ref = doc(collection(db, 'roster'));
     const rosterDoc = { name, isNew: true, joined: TODAY };
@@ -446,9 +471,9 @@ async function addMember() {
       });
     }
     closeNewMemberForm();
-    await checkIn(ref.id);
+    await window.checkIn(ref.id);
   } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
-}
+};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -458,41 +483,15 @@ function showToast(msg, type = 'ok') {
   setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-function showTab(tab) {
+window.showTab = function (tab) {
   ['checkin','tonight'].forEach(t => {
     document.getElementById('view-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('tab-' + t).className = 'tab' + (t === tab ? ' active' : '');
   });
+  // close new member form when switching tabs
   if (tab !== 'checkin') closeNewMemberForm();
   if (tab === 'tonight') renderSummary();
-}
-
-// ── Attach Event Listeners ────────────────────────────────────────────────────
-document.getElementById('tab-checkin').addEventListener('click', () => showTab('checkin'));
-document.getElementById('tab-tonight').addEventListener('click', () => showTab('tonight'));
-
-document.getElementById('seg-name').addEventListener('click', () => setSearchMode('name'));
-document.getElementById('seg-phone').addEventListener('click', () => setSearchMode('phone'));
-
-document.getElementById('search').addEventListener('input', onSearchInput);
-
-document.getElementById('btn-new-member').addEventListener('click', openNewMemberForm);
-document.getElementById('btn-cancel-form-top').addEventListener('click', closeNewMemberForm);
-document.getElementById('btn-cancel-form-bottom').addEventListener('click', closeNewMemberForm);
-
-document.getElementById('new-name').addEventListener('input', () => clearErr('name-err'));
-document.getElementById('new-email').addEventListener('input', () => clearErr('email-err'));
-document.getElementById('new-phone').addEventListener('input', onPhoneInput);
-
-document.getElementById('btn-submit-member').addEventListener('click', addMember);
-
-// Delegate click events inside dynamically populated roster items
-document.getElementById('roster').addEventListener('click', (e) => {
-  const targetButton = e.target.closest('.member-btn');
-  if (targetButton && targetButton.dataset.id) {
-    checkIn(targetButton.dataset.id);
-  }
-});
+};
 </script>
 </body>
 </html>
