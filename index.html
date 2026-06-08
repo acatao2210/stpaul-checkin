@@ -122,7 +122,6 @@
 
   <div class="tab-row">
     <button class="tab active" id="tab-checkin" onclick="showTab('checkin')">Check in</button>
-    <button class="tab"        id="tab-tonight" onclick="showTab('tonight')">Tonight</button>
   </div>
 
   <div id="view-checkin">
@@ -637,12 +636,11 @@ function showToast(msg, type = 'ok') {
 }
 
 window.showTab = function (tab) {
-  ['checkin','tonight'].forEach(t => {
+  ['checkin'].forEach(t => {
     document.getElementById('view-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('tab-' + t).className = 'tab' + (t === tab ? ' active' : '');
   });
   if (tab !== 'checkin') closeNewMemberForm();
-  if (tab === 'tonight') renderSummary();
 };
 </script>
 </body>
