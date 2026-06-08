@@ -212,7 +212,7 @@ document.getElementById('date-label').textContent = new Date().toLocaleDateStrin
 });
 
 let rosterCache = [], todayCheckins = [];
-let searchMode = 'name', phoneSearchHash = null;
+let searchMode = 'name', phoneSearchHash = null, currentSearchVal = '';
 let splashTimeout = null;
 
 signInAnonymously(auth).catch(e => console.warn('Anon auth:', e.message));
@@ -220,27 +220,51 @@ signInAnonymously(auth).catch(e => console.warn('Anon auth:', e.message));
 // ── Phone formatting & hashing ────────────────────────────────────────────────
 
 function formatPhone(raw) {
-  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  let digits = (raw || '').replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) {
+    digits = digits.slice(1);
+  }
+  digits = digits.slice(0, 10);
   if (digits.length <= 3)  return digits;
   if (digits.length <= 6)  return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
   return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
 }
 
-function digitsOnly(val) { return (val || '').replace(/\D/g, ''); }
-
 async function hashPhone(raw) {
-  const digits = digitsOnly(raw).slice(-10);
+  let digits = (raw || '').replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) {
+    digits = digits.slice(1);
+  }
   if (digits.length !== 10) return null;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(digits));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+function updatePhoneInputFormatting(inp) {
+  const oldVal = inp.value;
+  const oldCursor = inp.selectionStart;
+  const digitsBeforeCursor = oldVal.slice(0, oldCursor).replace(/\D/g, '').length;
+  
+  const formatted = formatPhone(oldVal);
+  inp.value = formatted;
+  
+  let newCursor = 0;
+  let digitCount = 0;
+  for (let i = 0; i < formatted.length; i++) {
+    if (digitCount === digitsBeforeCursor) break;
+    if (/\d/.test(formatted[i])) digitCount++;
+    newCursor = i + 1;
+  }
+  while (newCursor < formatted.length && /\D/.test(formatted[newCursor])) {
+    newCursor++;
+  }
+  inp.setSelectionRange(newCursor, newCursor);
+}
+
 window.onPhoneInput = function (e) {
-  const cursor = e.target.selectionStart;
-  const prev   = e.target.value;
-  const formatted = formatPhone(prev);
-  e.target.value = formatted;
-  e.target.setSelectionRange(Math.min(cursor, formatted.length), Math.min(cursor, formatted.length));
+  if (e && e.target) {
+    updatePhoneInputFormatting(e.target);
+  }
   clearErr('phone-err');
 };
 
@@ -256,7 +280,9 @@ function isValidEmail(email) {
 
 function isValidPhone(val) {
   if (!val) return true;
-  return digitsOnly(val).length === 10;
+  let digits = val.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) digits = digits.slice(1);
+  return digits.length === 10;
 }
 
 window.clearErr = function (id) {
@@ -309,6 +335,7 @@ onSnapshot(query(collection(db, 'checkins'), where('date', '==', TODAY)), snap =
 window.setSearchMode = function (mode) {
   searchMode = mode;
   phoneSearchHash = null;
+  currentSearchVal = '';
   document.getElementById('seg-name').className  = mode === 'name'  ? 'active' : '';
   document.getElementById('seg-phone').className = mode === 'phone' ? 'active' : '';
   const inp  = document.getElementById('search');
@@ -330,14 +357,18 @@ window.onSearchInput = async function (e) {
   const inp = document.getElementById('search');
   if (searchMode === 'phone') {
     if (e && e.target) {
-      const cursor = inp.selectionStart;
-      const formatted = formatPhone(inp.value);
-      inp.value = formatted;
-      inp.setSelectionRange(Math.min(cursor, formatted.length), Math.min(cursor, formatted.length));
+      updatePhoneInputFormatting(inp);
     }
-    phoneSearchHash = await hashPhone(inp.value);
+    const val = inp.value;
+    currentSearchVal = val;
+    const computedHash = await hashPhone(val);
+    if (currentSearchVal === val) {
+      phoneSearchHash = computedHash;
+      renderRoster();
+    }
+  } else {
+    renderRoster();
   }
-  renderRoster();
 };
 
 // ── Roster render ─────────────────────────────────────────────────────────────
@@ -372,98 +403,5 @@ function renderRoster() {
 
   el.innerHTML = filtered.map(m => {
     const ci = isCI(m.id);
-    
-    // Privacy Logic: Show plaintext phone string if looking up via phone, otherwise show name
     const displayLabel  = searchMode === 'phone' ? typedPhoneValue : m.name;
-    const avatarContent = searchMode === 'phone' ? '<i class="ti ti-phone" style="font-size:16px;"></i>' : initials(m.name);
-
-    return '<button class="member-btn ' + (ci ? 'ci' : '') + '" onclick="checkIn(\'' + m.id + '\')">' +
-      '<div class="avatar ' + (ci ? 'green' : '') + '">' + avatarContent + '</div>' +
-      '<div style="flex:1;"><div class="member-name">' + displayLabel + '</div></div>' +
-      (ci ? '<i class="ti ti-check check-icon"></i>' : '') +
-      '</button>';
-  }).join('');
-}
-
-// ── Check in & Splash Control ─────────────────────────────────────────────────
-
-window.checkIn = async function (id) {
-  if (isCI(id)) { showToast('Already checked in', 'err'); return; }
-  const event = document.getElementById('event-type').value;
-  const m = rosterCache.find(r => r.id === id);
-  if (!m) return;
-  try {
-    await addDoc(collection(db, 'checkins'), {
-      memberId: id, memberName: m.name, date: TODAY, event,
-      isNew: m.isNew || false, ts: Date.now()
-    });
-    if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
-    
-    triggerSuccessSplash(m.name);
-  } catch (e) { showToast('Check-in failed', 'err'); console.error(e); }
-};
-
-function triggerSuccessSplash(name) {
-  // Hide main interactive app content
-  document.getElementById('view-checkin').style.display = 'none';
-  
-  // Update screen header to use "Welcome, [Name]!" configuration
-  document.getElementById('success-title').textContent = 'Welcome, ' + name + '!';
-  document.getElementById('view-success').style.display = 'block';
-
-  // Automatically reset the dashboard home for the next person after 3.5 seconds
-  if (splashTimeout) clearTimeout(splashTimeout);
-  splashTimeout = setTimeout(() => {
-    resetToHome();
-  }, 3500);
-}
-
-window.resetToHome = function () {
-  if (splashTimeout) clearTimeout(splashTimeout);
-  document.getElementById('view-success').style.display = 'none';
-  document.getElementById('view-checkin').style.display = '';
-  document.getElementById('search').value = '';
-  phoneSearchHash = null;
-  renderRoster();
-};
-
-// ── Add member ────────────────────────────────────────────────────────────────
-
-window.addMember = async function () {
-  const name  = document.getElementById('new-name').value.trim();
-  const email = document.getElementById('new-email').value.trim();
-  const phone = document.getElementById('new-phone').value.trim();
-  const age   = document.getElementById('new-age').value;
-
-  let valid = true;
-  if (!name)              { showErr('name-err',  'new-name');  valid = false; }
-  if (!isValidEmail(email)) { showErr('email-err', 'new-email'); valid = false; }
-  if (!isValidPhone(phone)) { showErr('phone-err', 'new-phone'); valid = false; }
-  if (!valid) return;
-
-  try {
-    const phoneHash = phone ? await hashPhone(phone) : null;
-    const ref = doc(collection(db, 'roster'));
-    const rosterDoc = { name, isNew: true, joined: TODAY };
-    if (phoneHash) rosterDoc.phoneHash = phoneHash;
-    await setDoc(ref, rosterDoc);
-    if (email || phone || age) {
-      await setDoc(doc(db, 'contacts', ref.id), {
-        email: email || '', phone: phone || '', ageBracket: age || ''
-      });
-    }
-    closeNewMemberForm();
-    await window.checkIn(ref.id);
-  } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
-};
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function showToast(msg, type = 'ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 2400);
-}
-</script>
-</body>
-</html>
+    const
