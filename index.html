@@ -258,6 +258,7 @@ window.onPhoneInput = function (e) {
   const prev   = e.target.value;
   const formatted = formatPhone(prev);
   e.target.value = formatted;
+  // keep cursor roughly correct
   e.target.setSelectionRange(Math.min(cursor, formatted.length), Math.min(cursor, formatted.length));
   window.clearErr('phone-err');
 };
@@ -306,6 +307,7 @@ window.openNewMemberForm = function () {
 window.closeNewMemberForm = function () {
   document.getElementById('new-member-form').style.display = 'none';
   document.getElementById('checkin-main').style.display   = '';
+  // clear form
   ['new-name','new-email','new-phone','new-age'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -450,15 +452,38 @@ window.addMember = async function () {
     const rosterDoc = { name, isNew: true, joined: TODAY };
     if (phoneHash) rosterDoc.phoneHash = phoneHash;
     
+    // Save to roster
     await setDoc(ref, rosterDoc);
+    
+    // Save optional details to contacts
     if (email || phone || age) {
       await setDoc(doc(db, 'contacts', ref.id), {
         email: email || '', phone: phone || '', ageBracket: age || ''
       });
     }
+    
     closeNewMemberForm();
-    await window.checkIn(ref.id);
-  } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
+
+    // Directly execute check-in logic using the fresh data object 
+    // to bypass cache sync race conditions.
+    const event = document.getElementById('event-type').value;
+    await addDoc(collection(db, 'checkins'), {
+      memberId: ref.id, 
+      memberName: name, 
+      date: TODAY, 
+      event,
+      isNew: true, 
+      ts: Date.now()
+    });
+
+    // Mark as no longer a brand new attendee
+    await updateDoc(doc(db, 'roster', ref.id), { isNew: false });
+    
+    showToast('✓ ' + name + ' registered & checked in!');
+  } catch (e) { 
+    showToast('Could not add member', 'err'); 
+    console.error(e); 
+  }
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -474,6 +499,7 @@ window.showTab = function (tab) {
     document.getElementById('view-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('tab-' + t).className = 'tab' + (t === tab ? ' active' : '');
   });
+  // close new member form when switching tabs
   if (tab !== 'checkin') closeNewMemberForm();
   if (tab === 'tonight') renderSummary();
 };
