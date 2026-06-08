@@ -211,7 +211,7 @@
 
 </div>
 
-<div class="version-tag">v1.1.1</div>
+<div class="version-tag">v1.1.0</div>
 
 <div class="toast ok" id="toast"></div>
 
@@ -309,7 +309,6 @@ function showErr(id, inputId, msg) {
   const errEl = document.getElementById(id);
   if (errEl) {
     if (msg) errEl.textContent = msg;
-    errEl.add('show');
     errEl.classList.add('show');
   }
   const inp = document.getElementById(inputId);
@@ -464,8 +463,8 @@ window.addMember = async function () {
   ['name-err', 'email-err', 'phone-err'].forEach(id => window.clearErr(id));
 
   // 1. Data Cleaning & Normalization
-  const cleanName = rawName.trim().replace(/\s+/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-  const cleanEmail = rawEmail.trim().toLowerCase();
+  const cleanName = rawName ? rawName.trim().replace(/\s+/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
+  const cleanEmail = rawEmail ? rawEmail.trim().toLowerCase() : '';
 
   let valid = true;
   if (!cleanName) { showErr('name-err', 'new-name', 'Please enter a name.'); valid = false; }
@@ -489,16 +488,21 @@ window.addMember = async function () {
   const cancelBot = document.getElementById('form-cancel-bottom');
   const inputs = ['new-name', 'new-email', 'new-phone', 'new-age'].map(id => document.getElementById(id));
 
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<i class="ti ti-loader spin"></i> Saving...';
-  cancelTop.disabled = true;
-  cancelBot.disabled = true;
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ti ti-loader spin"></i> Saving...';
+  }
+  if (cancelTop) cancelTop.disabled = true;
+  if (cancelBot) cancelBot.disabled = true;
   inputs.forEach(el => el && (el.disabled = true));
 
   try {
     const phoneHash = phone ? await hashPhone(phone) : null;
     const ref = doc(collection(db, 'roster'));
-    const rosterDoc = { name: cleanName, isNew: true, joined: TODAY };
+    
+    // Create the roster profile with isNew: false directly since they are checking in right now.
+    // This removes any separate updateDoc calls which can be blocked by Firestore safety rules.
+    const rosterDoc = { name: cleanName, isNew: false, joined: TODAY };
     if (phoneHash) rosterDoc.phoneHash = phoneHash;
     
     await setDoc(ref, rosterDoc);
@@ -509,9 +513,9 @@ window.addMember = async function () {
       });
     }
     
-    closeNewMemberForm();
-
     const event = document.getElementById('event-type').value;
+    
+    // Log check-in entry directly (isNew: true marks them as a first-timer tonight)
     await addDoc(collection(db, 'checkins'), {
       memberId: ref.id, 
       memberName: cleanName, 
@@ -520,19 +524,20 @@ window.addMember = async function () {
       isNew: true, 
       ts: Date.now()
     });
-
-    await updateDoc(doc(db, 'roster', ref.id), { isNew: false });
     
+    closeNewMemberForm();
     showToast('✓ ' + cleanName + ' registered & checked in!');
   } catch (e) { 
     showToast('Could not add member', 'err'); 
     console.error(e); 
   } finally {
     // 4. Release Interactive Controls Lockout
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Add & check in';
-    cancelTop.disabled = false;
-    cancelBot.disabled = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Add & check in';
+    }
+    if (cancelTop) cancelTop.disabled = false;
+    if (cancelBot) cancelBot.disabled = false;
     inputs.forEach(el => el && (el.disabled = false));
   }
 };
