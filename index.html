@@ -37,6 +37,7 @@
     input, select { width:100%; padding:9px 12px; font-size:14px; font-family:inherit; border:0.5px solid var(--border-2); border-radius:var(--radius); background:var(--bg); color:var(--text); outline:none; transition:border-color 0.15s; }
     input:focus, select:focus { border-color:var(--green); }
     input.error { border-color:var(--red); }
+    input:disabled, select:disabled, button:disabled { opacity: 0.6; cursor: not-allowed; }
 
     /* Search */
     .seg { display:flex; margin-bottom:0.75rem; border:0.5px solid var(--border-2); border-radius:var(--radius); overflow:hidden; }
@@ -49,12 +50,12 @@
 
     /* Buttons */
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 14px; font-size:14px; font-family:inherit; font-weight:500; border-radius:var(--radius); cursor:pointer; border:none; transition:opacity 0.15s, background 0.15s; }
-    .btn:active { opacity:0.82; }
+    .btn:active:not(:disabled) { opacity:0.82; }
     .btn-primary { background:var(--text); color:var(--bg); width:100%; }
     .btn-outline { background:var(--bg); color:var(--text); border:0.5px solid var(--border-2); }
-    .btn-outline:hover { background:var(--bg-2); }
+    .btn-outline:hover:not(:disabled) { background:var(--bg-2); }
     .btn-ghost { background:transparent; color:var(--text-2); border:none; font-size:13px; padding:6px 0; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-family:inherit; }
-    .btn-ghost:hover { color:var(--text); }
+    .btn-ghost:hover:not(:disabled) { color:var(--text); }
     .btn-new { background:var(--bg); color:var(--text); border:0.5px dashed var(--border-2); width:100%; border-radius:var(--radius); padding:10px 14px; font-size:14px; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
     .btn-new:hover { background:var(--bg-2); border-style:solid; }
 
@@ -99,6 +100,10 @@
 
     /* Version Watermark */
     .version-tag { position:fixed; bottom:12px; right:12px; font-size:11px; color:var(--text-3); font-weight:400; pointer-events:none; letter-spacing:0.02em; }
+    
+    /* Animation Helpers */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 1s linear infinite; display: inline-block; }
   </style>
 </head>
 <body>
@@ -152,7 +157,7 @@
     <div id="new-member-form" class="form-view" style="display:none;">
       <div class="form-header">
         <h2>New member</h2>
-        <button class="btn-ghost" onclick="closeNewMemberForm()">
+        <button class="btn-ghost" id="form-cancel-top" onclick="closeNewMemberForm()">
           <i class="ti ti-x" style="font-size:14px;"></i> Cancel
         </button>
       </div>
@@ -188,8 +193,8 @@
       </div>
 
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="addMember()">Add &amp; check in</button>
-        <button class="btn btn-outline" onclick="closeNewMemberForm()" style="width:100%;">Cancel</button>
+        <button class="btn btn-primary" id="submit-member-btn" onclick="addMember()">Add &amp; check in</button>
+        <button class="btn btn-outline" id="form-cancel-bottom" onclick="closeNewMemberForm()" style="width:100%;">Cancel</button>
       </div>
     </div>
 
@@ -206,7 +211,7 @@
 
 </div>
 
-<div class="version-tag">v1.1.0</div>
+<div class="version-tag">v1.1.1</div>
 
 <div class="toast ok" id="toast"></div>
 
@@ -286,7 +291,10 @@ function isValidPhone(val) {
 
 window.clearErr = function (id) {
   const errEl = document.getElementById(id);
-  if (errEl) errEl.classList.remove('show');
+  if (errEl) {
+    errEl.classList.remove('show');
+    if (id === 'name-err') errEl.textContent = 'Please enter a name.';
+  }
   
   const inputMap = {
     'name-err': 'new-name',
@@ -297,9 +305,13 @@ window.clearErr = function (id) {
   if (input) input.classList.remove('error');
 };
 
-function showErr(id, inputId) {
+function showErr(id, inputId, msg) {
   const errEl = document.getElementById(id);
-  if (errEl) errEl.classList.add('show');
+  if (errEl) {
+    if (msg) errEl.textContent = msg;
+    errEl.add('show');
+    errEl.classList.add('show');
+  }
   const inp = document.getElementById(inputId);
   if (inp) inp.classList.add('error');
 }
@@ -321,8 +333,7 @@ window.closeNewMemberForm = function () {
     el && el.classList.remove('error');
   });
   ['name-err','email-err','phone-err'].forEach(id => {
-    const errEl = document.getElementById(id);
-    if (errEl) errEl.classList.remove('show');
+    window.clearErr(id);
   });
 };
 
@@ -445,30 +456,56 @@ window.checkIn = async function (id) {
 // ── Add member ────────────────────────────────────────────────────────────────
 
 window.addMember = async function () {
-  const name  = document.getElementById('new-name').value.trim();
-  const email = document.getElementById('new-email').value.trim();
-  const phone = document.getElementById('new-phone').value.trim();
-  const age   = document.getElementById('new-age').value;
+  const rawName  = document.getElementById('new-name').value;
+  const rawEmail = document.getElementById('new-email').value;
+  const phone    = document.getElementById('new-phone').value.trim();
+  const age      = document.getElementById('new-age').value;
 
   ['name-err', 'email-err', 'phone-err'].forEach(id => window.clearErr(id));
 
+  // 1. Data Cleaning & Normalization
+  const cleanName = rawName.trim().replace(/\s+/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  const cleanEmail = rawEmail.trim().toLowerCase();
+
   let valid = true;
-  if (!name)              { showErr('name-err',  'new-name');  valid = false; }
-  if (!isValidEmail(email)) { showErr('email-err', 'new-email'); valid = false; }
+  if (!cleanName) { showErr('name-err', 'new-name', 'Please enter a name.'); valid = false; }
+  if (!isValidEmail(cleanEmail)) { showErr('email-err', 'new-email'); valid = false; }
   if (!isValidPhone(phone)) { showErr('phone-err', 'new-phone'); valid = false; }
+  
+  // 2. Client Side Duplicate Account Mitigation
+  if (cleanName) {
+    const duplicateExists = rosterCache.some(m => m.name.toLowerCase() === cleanName.toLowerCase());
+    if (duplicateExists) {
+      showErr('name-err', 'new-name', 'This member profile already exists. Search for their name instead.');
+      valid = false;
+    }
+  }
+
   if (!valid) return;
+
+  // 3. UI Loading Lockout Configuration
+  const submitBtn = document.getElementById('submit-member-btn');
+  const cancelTop = document.getElementById('form-cancel-top');
+  const cancelBot = document.getElementById('form-cancel-bottom');
+  const inputs = ['new-name', 'new-email', 'new-phone', 'new-age'].map(id => document.getElementById(id));
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="ti ti-loader spin"></i> Saving...';
+  cancelTop.disabled = true;
+  cancelBot.disabled = true;
+  inputs.forEach(el => el && (el.disabled = true));
 
   try {
     const phoneHash = phone ? await hashPhone(phone) : null;
     const ref = doc(collection(db, 'roster'));
-    const rosterDoc = { name, isNew: true, joined: TODAY };
+    const rosterDoc = { name: cleanName, isNew: true, joined: TODAY };
     if (phoneHash) rosterDoc.phoneHash = phoneHash;
     
     await setDoc(ref, rosterDoc);
     
-    if (email || phone || age) {
+    if (cleanEmail || phone || age) {
       await setDoc(doc(db, 'contacts', ref.id), {
-        email: email || '', phone: phone || '', ageBracket: age || ''
+        email: cleanEmail || '', phone: phone || '', ageBracket: age || ''
       });
     }
     
@@ -477,7 +514,7 @@ window.addMember = async function () {
     const event = document.getElementById('event-type').value;
     await addDoc(collection(db, 'checkins'), {
       memberId: ref.id, 
-      memberName: name, 
+      memberName: cleanName, 
       date: TODAY, 
       event,
       isNew: true, 
@@ -486,10 +523,17 @@ window.addMember = async function () {
 
     await updateDoc(doc(db, 'roster', ref.id), { isNew: false });
     
-    showToast('✓ ' + name + ' registered & checked in!');
+    showToast('✓ ' + cleanName + ' registered & checked in!');
   } catch (e) { 
     showToast('Could not add member', 'err'); 
     console.error(e); 
+  } finally {
+    // 4. Release Interactive Controls Lockout
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Add & check in';
+    cancelTop.disabled = false;
+    cancelBot.disabled = false;
+    inputs.forEach(el => el && (el.disabled = false));
   }
 };
 
