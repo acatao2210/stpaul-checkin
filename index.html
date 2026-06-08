@@ -264,7 +264,6 @@ window.onPhoneInput = function (e) {
   const prev   = e.target.value;
   const formatted = formatPhone(prev);
   e.target.value = formatted;
-  // keep cursor roughly correct
   e.target.setSelectionRange(Math.min(cursor, formatted.length), Math.min(cursor, formatted.length));
   clearErr('phone-err');
 };
@@ -272,15 +271,15 @@ window.onPhoneInput = function (e) {
 // ── Validation ────────────────────────────────────────────────────────────────
 
 function isValidEmail(email) {
-  if (!email) return true;           // email is optional
+  if (!email) return true;
   const at = email.indexOf('@');
-  if (at < 1) return false;          // '@' must exist and not be the first char
+  if (at < 1) return false;
   const after = email.slice(at + 1);
-  return after.includes('.');        // domain must contain a dot
+  return after.includes('.');
 }
 
 function isValidPhone(val) {
-  if (!val) return true;             // phone is optional
+  if (!val) return true;
   return digitsOnly(val).length === 10;
 }
 
@@ -290,12 +289,6 @@ window.clearErr = function (id) {
   const input = document.getElementById(inputId);
   if (input) input.classList.remove('error');
 };
-
-function showErr(id, inputId) {
-  document.getElementById(id).classList.add('show');
-  const inp = document.getElementById(inputId);
-  if (inp) inp.classList.add('error');
-}
 
 // ── New member form visibility ────────────────────────────────────────────────
 
@@ -308,7 +301,6 @@ window.openNewMemberForm = function () {
 window.closeNewMemberForm = function () {
   document.getElementById('new-member-form').style.display = 'none';
   document.getElementById('checkin-main').style.display   = '';
-  // clear form
   ['new-first-name','new-last-name','new-email','new-phone','new-age'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -393,17 +385,28 @@ function renderRoster() {
       return;
     }
   } else {
-    const q = document.getElementById('search').value.toLowerCase();
-    filtered = rosterCache.filter(m => m.name.toLowerCase().includes(q));
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    
+    // REQUIRE AT LEAST ONE CHARACTER FOR NAME SEARCH
+    if (q.length < 1) {
+      el.innerHTML = '<div class="empty">Type a name to search…</div>';
+      return;
+    }
+
+    filtered = rosterCache.filter(m => {
+      const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+      return fullName.toLowerCase().includes(q);
+    });
     if (!filtered.length) { el.innerHTML = '<div class="empty">No members found</div>'; return; }
   }
 
   el.innerHTML = filtered.map(m => {
     const ci = isCI(m.id);
-    const displayName = searchMode === 'phone' ? maskName(m.name) : m.name;
+    const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+    const displayName = searchMode === 'phone' ? maskName(fullName) : fullName;
     
     return '<button class="member-btn ' + (ci ? 'ci' : '') + '" onclick="checkIn(\'' + m.id + '\')">' +
-      '<div class="avatar ' + (ci ? 'green' : '') + '">' + initials(m.name) + '</div>' +
+      '<div class="avatar ' + (ci ? 'green' : '') + '">' + initials(fullName) + '</div>' +
       '<div style="flex:1;"><div class="member-name">' + displayName + '</div></div>' +
       (ci ? '<i class="ti ti-check check-icon"></i>' : '') +
       '</button>';
@@ -431,13 +434,15 @@ window.checkIn = async function (id) {
   const event = document.getElementById('event-type').value;
   const m = rosterCache.find(r => r.id === id);
   if (!m) return;
+  
+  const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
   try {
     await addDoc(collection(db, 'checkins'), {
-      memberId: id, memberName: m.name, date: TODAY, event,
+      memberId: id, memberName: fullName, date: TODAY, event,
       isNew: m.isNew || false, ts: Date.now()
     });
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
-    showToast('✓ ' + m.name + ' checked in');
+    showToast('✓ ' + fullName + ' checked in');
   } catch (e) { showToast('Check-in failed', 'err'); console.error(e); }
 };
 
@@ -450,7 +455,6 @@ window.addMember = async function () {
   const phone     = document.getElementById('new-phone').value.trim();
   const age       = document.getElementById('new-age').value;
 
-  // Validate
   let valid = true;
   if (!firstName)         { showErr('first-name-err', 'new-first-name'); valid = false; }
   if (!lastName)          { showErr('last-name-err',  'new-last-name');  valid = false; }
@@ -462,9 +466,18 @@ window.addMember = async function () {
     const name = firstName + ' ' + lastName;
     const phoneHash = phone ? await hashPhone(phone) : null;
     const ref = doc(collection(db, 'roster'));
-    const rosterDoc = { name, isNew: true, joined: TODAY };
+    
+    const rosterDoc = { 
+      firstName, 
+      lastName, 
+      name, 
+      isNew: true, 
+      joined: TODAY 
+    };
+    
     if (phoneHash) rosterDoc.phoneHash = phoneHash;
     await setDoc(ref, rosterDoc);
+    
     if (email || phone || age) {
       await setDoc(doc(db, 'contacts', ref.id), {
         email: email || '', phone: phone || '', ageBracket: age || ''
@@ -488,7 +501,6 @@ window.showTab = function (tab) {
     document.getElementById('view-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('tab-' + t).className = 'tab' + (t === tab ? ' active' : '');
   });
-  // close new member form when switching tabs
   if (tab !== 'checkin') closeNewMemberForm();
   if (tab === 'tonight') renderSummary();
 };
