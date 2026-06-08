@@ -13,77 +13,89 @@
     :root {
       --green:#0F6E56; --green-light:#E1F5EE; --green-mid:#9FE1CB; --green-dark:#085041;
       --blue:#185FA5; --blue-light:#E6F1FB; --red:#A32D2D; --red-light:#FCEBEB;
-      --amber-light:#FAEEDA; --amber-dark:#633806; --purple:#534AB7; --purple-light:#EEEDFE;
-      --text:#111; --text-2:#555; --text-3:#999; --bg:#fff; --bg-2:#f7f7f5; --bg-3:#ededeb;
+      --amber-light:#FAEEDA; --amber-dark:#633806;
+      --text:#111; --text-2:#555; --text-3:#999;
+      --bg:#fff; --bg-2:#f7f7f5; --bg-3:#ededeb;
       --border:#e5e5e3; --border-2:#d0d0ce; --radius:8px; --radius-lg:12px;
     }
     body { font-family:'Inter',system-ui,sans-serif; background:var(--bg-2); color:var(--text); min-height:100vh; display:flex; justify-content:center; padding:0 1rem 3rem; }
     .app { width:100%; max-width:420px; }
+
+    /* Header */
     .header { padding:1.25rem 0 1rem; border-bottom:0.5px solid var(--border); margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:flex-start; }
     .header h1 { font-size:18px; font-weight:500; }
-    .header p { font-size:13px; color:var(--text-2); margin-top:2px; }
-    .nav-link { font-size:12px; color:var(--text-2); text-decoration:none; border:0.5px solid var(--border-2); padding:6px 10px; border-radius:var(--radius); white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
+    .header p  { font-size:13px; color:var(--text-2); margin-top:2px; }
+    .nav-link  { font-size:12px; color:var(--text-2); text-decoration:none; border:0.5px solid var(--border-2); padding:6px 10px; border-radius:var(--radius); white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
     .nav-link:hover { background:var(--bg); }
+
+    /* Tabs */
     .tab-row { display:flex; gap:6px; margin-bottom:1.25rem; }
     .tab { flex:1; padding:8px 4px; font-size:13px; font-family:inherit; border:0.5px solid var(--border-2); border-radius:var(--radius); background:var(--bg); cursor:pointer; color:var(--text-2); }
     .tab.active { background:var(--text); color:var(--bg); border-color:var(--text); }
-    input, select { width:100%; padding:9px 12px; font-size:14px; font-family:inherit; border:0.5px solid var(--border-2); border-radius:var(--radius); background:var(--bg); color:var(--text); outline:none; }
+
+    /* Inputs */
+    input, select { width:100%; padding:9px 12px; font-size:14px; font-family:inherit; border:0.5px solid var(--border-2); border-radius:var(--radius); background:var(--bg); color:var(--text); outline:none; transition:border-color 0.15s; }
     input:focus, select:focus { border-color:var(--green); }
-    input[type=password] { letter-spacing:0.1em; }
-    .seg { display:flex; gap:0; margin-bottom:0.75rem; border:0.5px solid var(--border-2); border-radius:var(--radius); overflow:hidden; }
+    input.error { border-color:var(--red); }
+
+    /* Search */
+    .seg { display:flex; margin-bottom:0.75rem; border:0.5px solid var(--border-2); border-radius:var(--radius); overflow:hidden; }
     .seg button { flex:1; padding:8px; font-size:13px; font-family:inherit; background:var(--bg); border:none; cursor:pointer; color:var(--text-2); }
     .seg button.active { background:var(--text); color:var(--bg); }
     .search-wrap { position:relative; margin-bottom:0.75rem; }
     .search-wrap i { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--text-3); pointer-events:none; }
     .search-wrap input { padding-left:34px; }
     .event-select { margin-bottom:1.25rem; }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 14px; font-size:14px; font-family:inherit; font-weight:500; border-radius:var(--radius); cursor:pointer; border:none; }
+
+    /* Buttons */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 14px; font-size:14px; font-family:inherit; font-weight:500; border-radius:var(--radius); cursor:pointer; border:none; transition:opacity 0.15s, background 0.15s; }
     .btn:active { opacity:0.82; }
     .btn-primary { background:var(--text); color:var(--bg); width:100%; }
     .btn-outline { background:var(--bg); color:var(--text); border:0.5px solid var(--border-2); }
     .btn-outline:hover { background:var(--bg-2); }
-    .btn-sm { padding:6px 10px; font-size:12px; }
-    .btn-danger { color:var(--red); border-color:#F09595; background:transparent; }
-    .btn-danger:hover { background:var(--red-light); }
+    .btn-ghost { background:transparent; color:var(--text-2); border:none; font-size:13px; padding:6px 0; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-family:inherit; }
+    .btn-ghost:hover { color:var(--text); }
+    .btn-new { background:var(--bg); color:var(--text); border:0.5px dashed var(--border-2); width:100%; border-radius:var(--radius); padding:10px 14px; font-size:14px; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .btn-new:hover { background:var(--bg-2); border-style:solid; }
+
+    /* Roster */
     .roster { display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto; margin-bottom:1rem; }
     .member-btn { display:flex; align-items:center; gap:10px; background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius); padding:10px 12px; cursor:pointer; text-align:left; width:100%; font-family:inherit; }
     .member-btn:hover { background:var(--bg-2); }
-    .member-btn.ci { border-color:var(--green); background:var(--green-light); }
+    .member-btn.ci     { border-color:var(--green); background:var(--green-light); }
     .member-btn.static { cursor:default; }
     .avatar { width:36px; height:36px; border-radius:50%; background:var(--blue-light); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:500; color:var(--blue); flex-shrink:0; }
     .avatar.green { background:var(--green-mid); color:var(--green-dark); }
-    .avatar.amber { background:var(--amber-light); color:var(--amber-dark); }
     .member-name { font-size:14px; font-weight:500; }
-    .member-sub { font-size:12px; color:var(--text-2); }
-    .check-icon { color:var(--green); font-size:18px; margin-left:auto; }
+    .member-sub  { font-size:12px; color:var(--text-2); }
+    .check-icon  { color:var(--green); font-size:18px; margin-left:auto; }
+
+    /* New member form */
+    .form-view { animation: fadeIn 0.15s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+    .form-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+    .form-header h2 { font-size:16px; font-weight:500; }
+    .field { margin-bottom:1rem; }
+    .field label { display:block; font-size:12px; font-weight:500; color:var(--text-2); margin-bottom:5px; }
+    .field-hint { font-size:11px; color:var(--text-3); margin-top:4px; }
+    .field-err  { font-size:11px; color:var(--red); margin-top:4px; display:none; }
+    .field-err.show { display:block; }
+    .form-actions { display:flex; flex-direction:column; gap:8px; margin-top:1.25rem; }
+
+    /* Stats & layout */
     .divider { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:1rem 0 0.5rem; }
-    .surface { background:var(--bg-2); border-radius:var(--radius-lg); padding:1rem; margin-bottom:1rem; }
-    .field { margin-bottom:0.75rem; }
-    .field label { display:block; font-size:12px; color:var(--text-2); margin-bottom:4px; }
-    .card { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:1rem; }
     .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:1.25rem; }
     .stat { background:var(--bg-2); border-radius:var(--radius); padding:0.75rem; }
-    .stat-val { font-size:24px; font-weight:500; }
+    .stat-val   { font-size:24px; font-weight:500; }
     .stat-label { font-size:12px; color:var(--text-2); margin-top:2px; }
-    .bar-wrap { margin-bottom:0.5rem; }
-    .bar-label { display:flex; justify-content:space-between; font-size:12px; color:var(--text-2); margin-bottom:3px; }
-    .bar-track { height:8px; background:var(--bg-3); border-radius:4px; overflow:hidden; }
-    .bar-fill { height:100%; background:var(--green); border-radius:4px; }
-    .bar-fill.blue { background:var(--blue); }
-    .bar-fill.purple { background:var(--purple); }
-    .admin-list { max-height:280px; overflow-y:auto; margin-bottom:1rem; }
-    .admin-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--border); }
-    .admin-row:last-child { border-bottom:none; }
-    .export-row { display:flex; gap:8px; margin-bottom:1rem; }
-    .info-box { background:var(--green-light); border-radius:var(--radius); padding:0.6rem 0.75rem; font-size:12px; color:var(--green-dark); margin-bottom:1rem; display:flex; align-items:flex-start; gap:6px; line-height:1.5; }
-    .info-box i { flex-shrink:0; margin-top:1px; }
+
+    /* Toast */
     .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); font-size:13px; padding:8px 18px; border-radius:var(--radius); white-space:nowrap; opacity:0; transition:opacity 0.2s; pointer-events:none; z-index:99; font-family:inherit; }
-    .toast.ok { background:var(--green-dark); color:var(--green-light); }
+    .toast.ok  { background:var(--green-dark); color:var(--green-light); }
     .toast.err { background:var(--red); color:#fff; }
     .toast.show { opacity:1; }
-    .empty { font-size:13px; color:var(--text-3); padding:1.5rem 0; text-align:center; }
+    .empty   { font-size:13px; color:var(--text-3); padding:1.5rem 0; text-align:center; }
     .loading { font-size:13px; color:var(--text-3); padding:1rem 0; text-align:center; }
-    .admin-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
   </style>
 </head>
 <body>
@@ -102,46 +114,70 @@
     <button class="tab"        id="tab-tonight" onclick="showTab('tonight')">Tonight</button>
   </div>
 
-  <!-- CHECK IN -->
+  <!-- ── CHECK IN ──────────────────────────────────────────────────────── -->
   <div id="view-checkin">
-    <select class="event-select" id="event-type">
-      <option>Wednesday Night</option>
-      <option>Mass</option>
-      <option>Service Day</option>
-      <option>Social Event</option>
-      <option>Faith Formation</option>
-      <option>Other</option>
-    </select>
 
-    <div class="seg">
-      <button id="seg-name"  class="active" onclick="setSearchMode('name')">Find by name</button>
-      <button id="seg-phone"            onclick="setSearchMode('phone')">Find by phone</button>
+    <!-- Main check-in view -->
+    <div id="checkin-main">
+      <select class="event-select" id="event-type">
+        <option>Wednesday Night</option>
+        <option>Mass</option>
+        <option>Service Day</option>
+        <option>Social Event</option>
+        <option>Faith Formation</option>
+        <option>Other</option>
+      </select>
+
+      <div class="seg">
+        <button id="seg-name"  class="active" onclick="setSearchMode('name')">Find by name</button>
+        <button id="seg-phone"            onclick="setSearchMode('phone')">Find by phone</button>
+      </div>
+
+      <div class="search-wrap">
+        <i class="ti ti-search" id="search-icon"></i>
+        <input type="text" id="search" placeholder="Search your name…"
+               oninput="onSearchInput()" autocomplete="off" />
+      </div>
+
+      <div class="roster" id="roster">
+        <div class="loading">Connecting…</div>
+      </div>
+
+      <button class="btn-new" onclick="openNewMemberForm()">
+        <i class="ti ti-user-plus" style="font-size:16px;"></i> New member
+      </button>
     </div>
 
-    <div class="search-wrap">
-      <i class="ti ti-search" id="search-icon"></i>
-      <input type="text" id="search" placeholder="Search your name…"
-             oninput="onSearchInput()" autocomplete="off" />
-    </div>
+    <!-- New member form (hidden by default) -->
+    <div id="new-member-form" class="form-view" style="display:none;">
+      <div class="form-header">
+        <h2>New member</h2>
+        <button class="btn-ghost" onclick="closeNewMemberForm()">
+          <i class="ti ti-x" style="font-size:14px;"></i> Cancel
+        </button>
+      </div>
 
-    <div class="roster" id="roster">
-      <div class="loading">Connecting…</div>
-    </div>
+      <div class="field">
+        <label>Full name <span style="color:var(--red);">*</span></label>
+        <input type="text" id="new-name" placeholder="First Last" autocomplete="off" oninput="clearErr('name-err')" />
+        <p class="field-err" id="name-err">Please enter a name.</p>
+      </div>
 
-    <div class="divider">New member</div>
-    <div class="surface">
       <div class="field">
-        <label>Full name</label>
-        <input type="text" id="new-name" placeholder="First Last" autocomplete="off" />
+        <label>Email <span style="color:var(--text-3);font-weight:400;">(admin only)</span></label>
+        <input type="email" id="new-email" placeholder="email@example.com" autocomplete="off"
+               oninput="clearErr('email-err')" />
+        <p class="field-err" id="email-err">Enter a valid email address (e.g. name@example.com).</p>
       </div>
+
       <div class="field">
-        <label>Email <span style="color:var(--text-3)">(private — admin only)</span></label>
-        <input type="email" id="new-email" placeholder="email@example.com" autocomplete="off" />
+        <label>Phone <span style="color:var(--text-3);font-weight:400;">(for check-in lookup)</span></label>
+        <input type="tel" id="new-phone" placeholder="(555) 123-4567" autocomplete="off"
+               oninput="onPhoneInput(event)" />
+        <p class="field-hint">Used to find yourself at future events. Stored privately.</p>
+        <p class="field-err" id="phone-err">Enter a 10-digit phone number.</p>
       </div>
-      <div class="field">
-        <label>Phone <span style="color:var(--text-3)">(for sign-in lookup)</span></label>
-        <input type="tel" id="new-phone" placeholder="(555) 123-4567" autocomplete="off" />
-      </div>
+
       <div class="field">
         <label>Age bracket</label>
         <select id="new-age">
@@ -150,11 +186,16 @@
           <option value="30-39">30–39</option>
         </select>
       </div>
-      <button class="btn btn-primary" onclick="addMember()">Add &amp; check in</button>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="addMember()">Add &amp; check in</button>
+        <button class="btn btn-outline" onclick="closeNewMemberForm()" style="width:100%;">Cancel</button>
+      </div>
     </div>
+
   </div>
 
-  <!-- TONIGHT -->
+  <!-- ── TONIGHT ───────────────────────────────────────────────────────── -->
   <div id="view-tonight" style="display:none;">
     <div class="stats">
       <div class="stat"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Checked in</div></div>
@@ -168,10 +209,11 @@
 <div class="toast ok" id="toast"></div>
 
 <script type="module">
-import { initializeApp }                from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInAnonymously }   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc,
-         onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp }                       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInAnonymously }          from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, doc,
+         addDoc, setDoc, updateDoc,
+         onSnapshot, query, orderBy, where }   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyBGoE6EWX6v_ypOPZHNyMfmC7Ftx29yB3s",
@@ -193,41 +235,119 @@ document.getElementById('date-label').textContent = new Date().toLocaleDateStrin
 });
 
 let rosterCache = [], todayCheckins = [];
-let searchMode = 'name';
-let phoneSearchHash = null;
+let searchMode = 'name', phoneSearchHash = null;
 
 signInAnonymously(auth).catch(e => console.warn('Anon auth:', e.message));
 
-// ── Phone hashing ─────────────────────────────────────────────────────────────
-function normalizePhone(p) { return (p || '').replace(/\D/g, '').slice(-10); }
-async function hashPhone(p) {
-  const digits = normalizePhone(p);
+// ── Phone formatting & hashing ────────────────────────────────────────────────
+
+function formatPhone(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3)  return digits;
+  if (digits.length <= 6)  return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+  return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+}
+
+function digitsOnly(val) { return (val || '').replace(/\D/g, ''); }
+
+async function hashPhone(raw) {
+  const digits = digitsOnly(raw).slice(-10);
   if (digits.length !== 10) return null;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(digits));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── Data ──────────────────────────────────────────────────────────────────────
+window.onPhoneInput = function (e) {
+  const cursor = e.target.selectionStart;
+  const prev   = e.target.value;
+  const formatted = formatPhone(prev);
+  e.target.value = formatted;
+  // keep cursor roughly correct
+  e.target.setSelectionRange(Math.min(cursor, formatted.length), Math.min(cursor, formatted.length));
+  clearErr('phone-err');
+};
+
+// ── Validation ────────────────────────────────────────────────────────────────
+
+function isValidEmail(email) {
+  if (!email) return true;           // email is optional
+  const at = email.indexOf('@');
+  if (at < 1) return false;          // '@' must exist and not be the first char
+  const after = email.slice(at + 1);
+  return after.includes('.');        // domain must contain a dot
+}
+
+function isValidPhone(val) {
+  if (!val) return true;             // phone is optional
+  return digitsOnly(val).length === 10;
+}
+
+window.clearErr = function (id) {
+  document.getElementById(id).classList.remove('show');
+  const input = document.getElementById(id.replace('-err', 'new-').replace('-err', ''));
+  if (input) input.classList.remove('error');
+};
+
+function showErr(id, inputId) {
+  document.getElementById(id).classList.add('show');
+  const inp = document.getElementById(inputId);
+  if (inp) inp.classList.add('error');
+}
+
+// ── New member form visibility ────────────────────────────────────────────────
+
+window.openNewMemberForm = function () {
+  document.getElementById('checkin-main').style.display   = 'none';
+  document.getElementById('new-member-form').style.display = '';
+  document.getElementById('new-name').focus();
+};
+
+window.closeNewMemberForm = function () {
+  document.getElementById('new-member-form').style.display = 'none';
+  document.getElementById('checkin-main').style.display   = '';
+  // clear form
+  ['new-name','new-email','new-phone','new-age'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+    el && el.classList.remove('error');
+  });
+  ['name-err','email-err','phone-err'].forEach(id => {
+    document.getElementById(id).classList.remove('show');
+  });
+};
+
+// ── Data listeners ────────────────────────────────────────────────────────────
+
 onSnapshot(query(collection(db, 'roster'), orderBy('name')), snap => {
   rosterCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderRoster();
 });
+
 onSnapshot(query(collection(db, 'checkins'), where('date', '==', TODAY)), snap => {
   todayCheckins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderRoster();
   renderSummary();
 });
 
-// ── Search ──────────────────────────────────────────────────────────────────
+// ── Search mode ───────────────────────────────────────────────────────────────
+
 window.setSearchMode = function (mode) {
   searchMode = mode;
+  phoneSearchHash = null;
   document.getElementById('seg-name').className  = mode === 'name'  ? 'active' : '';
   document.getElementById('seg-phone').className = mode === 'phone' ? 'active' : '';
-  const inp = document.getElementById('search');
-  inp.value = '';
-  phoneSearchHash = null;
-  if (mode === 'phone') { inp.type = 'tel'; inp.placeholder = 'Enter your full phone number'; document.getElementById('search-icon').className = 'ti ti-phone'; }
-  else { inp.type = 'text'; inp.placeholder = 'Search your name…'; document.getElementById('search-icon').className = 'ti ti-search'; }
+  const inp  = document.getElementById('search');
+  const icon = document.getElementById('search-icon');
+  inp.value  = '';
+  if (mode === 'phone') {
+    inp.type        = 'tel';
+    inp.placeholder = 'Enter your full phone number';
+    icon.className  = 'ti ti-phone';
+  } else {
+    inp.type        = 'text';
+    inp.placeholder = 'Search your name…';
+    icon.className  = 'ti ti-search';
+  }
   renderRoster();
 };
 
@@ -238,8 +358,11 @@ window.onSearchInput = async function () {
   renderRoster();
 };
 
-// ── Render ──────────────────────────────────────────────────────────────────
-function initials(n) { return n.trim().split(' ').map(p => p[0] || '').join('').toUpperCase().slice(0, 2); }
+// ── Roster render ─────────────────────────────────────────────────────────────
+
+function initials(n) {
+  return n.trim().split(' ').map(p => p[0] || '').join('').toUpperCase().slice(0, 2);
+}
 function isCI(id) { return todayCheckins.some(c => c.memberId === id); }
 
 function renderRoster() {
@@ -248,9 +371,15 @@ function renderRoster() {
 
   let filtered;
   if (searchMode === 'phone') {
-    if (!phoneSearchHash) { el.innerHTML = '<div class="empty">Enter your full phone number to find yourself</div>'; return; }
+    if (!phoneSearchHash) {
+      el.innerHTML = '<div class="empty">Enter your full phone number to find yourself</div>';
+      return;
+    }
     filtered = rosterCache.filter(m => m.phoneHash && m.phoneHash === phoneSearchHash);
-    if (!filtered.length) { el.innerHTML = '<div class="empty">No match — check the number or add yourself below</div>'; return; }
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty">No match — try a different number or add yourself below</div>';
+      return;
+    }
   } else {
     const q = document.getElementById('search').value.toLowerCase();
     filtered = rosterCache.filter(m => m.name.toLowerCase().includes(q));
@@ -263,7 +392,7 @@ function renderRoster() {
       '<div class="avatar ' + (ci ? 'green' : '') + '">' + initials(m.name) + '</div>' +
       '<div style="flex:1;"><div class="member-name">' + m.name + '</div></div>' +
       (ci ? '<i class="ti ti-check check-icon"></i>' : '') +
-    '</button>';
+      '</button>';
   }).join('');
 }
 
@@ -274,14 +403,15 @@ function renderSummary() {
   if (!todayCheckins.length) { sl.innerHTML = '<div class="empty">No one checked in yet</div>'; return; }
   sl.innerHTML = todayCheckins.map(c =>
     '<div class="member-btn static">' +
-      '<div class="avatar green">' + initials(c.memberName || '?') + '</div>' +
-      '<div style="flex:1;"><div class="member-name">' + c.memberName + '</div>' +
-      '<div class="member-sub">' + c.event + (c.isNew ? ' · First time' : '') + '</div></div>' +
-      '<i class="ti ti-check check-icon"></i>' +
-    '</div>').join('');
+    '<div class="avatar green">' + initials(c.memberName || '?') + '</div>' +
+    '<div style="flex:1;"><div class="member-name">' + c.memberName + '</div>' +
+    '<div class="member-sub">' + c.event + (c.isNew ? ' · First time' : '') + '</div></div>' +
+    '<i class="ti ti-check check-icon"></i></div>'
+  ).join('');
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────────
+// ── Check in ──────────────────────────────────────────────────────────────────
+
 window.checkIn = async function (id) {
   if (isCI(id)) { showToast('Already checked in', 'err'); return; }
   const event = document.getElementById('event-type').value;
@@ -289,19 +419,29 @@ window.checkIn = async function (id) {
   if (!m) return;
   try {
     await addDoc(collection(db, 'checkins'), {
-      memberId: id, memberName: m.name, date: TODAY, event, isNew: m.isNew || false, ts: Date.now()
+      memberId: id, memberName: m.name, date: TODAY, event,
+      isNew: m.isNew || false, ts: Date.now()
     });
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     showToast('✓ ' + m.name + ' checked in');
   } catch (e) { showToast('Check-in failed', 'err'); console.error(e); }
 };
 
+// ── Add member ────────────────────────────────────────────────────────────────
+
 window.addMember = async function () {
-  const name = document.getElementById('new-name').value.trim();
-  if (!name) { showToast('Enter a name', 'err'); return; }
+  const name  = document.getElementById('new-name').value.trim();
   const email = document.getElementById('new-email').value.trim();
   const phone = document.getElementById('new-phone').value.trim();
   const age   = document.getElementById('new-age').value;
+
+  // Validate
+  let valid = true;
+  if (!name)              { showErr('name-err',  'new-name');  valid = false; }
+  if (!isValidEmail(email)) { showErr('email-err', 'new-email'); valid = false; }
+  if (!isValidPhone(phone)) { showErr('phone-err', 'new-phone'); valid = false; }
+  if (!valid) return;
+
   try {
     const phoneHash = phone ? await hashPhone(phone) : null;
     const ref = doc(collection(db, 'roster'));
@@ -309,16 +449,16 @@ window.addMember = async function () {
     if (phoneHash) rosterDoc.phoneHash = phoneHash;
     await setDoc(ref, rosterDoc);
     if (email || phone || age) {
-      await setDoc(doc(db, 'contacts', ref.id), { email: email || '', phone: phone || '', ageBracket: age || '' });
+      await setDoc(doc(db, 'contacts', ref.id), {
+        email: email || '', phone: phone || '', ageBracket: age || ''
+      });
     }
+    closeNewMemberForm();
     await window.checkIn(ref.id);
-    document.getElementById('new-name').value  = '';
-    document.getElementById('new-email').value = '';
-    document.getElementById('new-phone').value = '';
-    document.getElementById('new-age').value   = '';
-    document.getElementById('search').value    = '';
   } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function showToast(msg, type = 'ok') {
   const t = document.getElementById('toast');
@@ -327,10 +467,12 @@ function showToast(msg, type = 'ok') {
 }
 
 window.showTab = function (tab) {
-  ['checkin', 'tonight'].forEach(t => {
+  ['checkin','tonight'].forEach(t => {
     document.getElementById('view-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('tab-' + t).className = 'tab' + (t === tab ? ' active' : '');
   });
+  // close new member form when switching tabs
+  if (tab !== 'checkin') closeNewMemberForm();
   if (tab === 'tonight') renderSummary();
 };
 </script>
