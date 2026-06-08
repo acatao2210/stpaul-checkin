@@ -509,12 +509,16 @@ window.addMember = async function () {
       const sameName = fullName.toLowerCase() === name.toLowerCase();
       const samePhone = phoneHash && m.phoneHash === phoneHash;
       
-      // Match by phone hash if provided; otherwise, fall back to exact name match
       return samePhone || (sameName && !phoneHash);
     });
 
     if (existingMember) {
-      // Graceful intercept: skip database write, clear form, and check them in directly
+      // FORCE ISNEW TO FALSE ON INTERCEPTION
+      if (existingMember.isNew) {
+        existingMember.isNew = false; // Updates local cache object instantly for window.checkIn execution
+        await updateDoc(doc(db, 'roster', existingMember.id), { isNew: false }); // Syncs to Firestore database
+      }
+      
       closeNewMemberForm();
       await window.checkIn(existingMember.id);
       return;
