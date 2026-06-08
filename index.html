@@ -139,12 +139,12 @@
 
       <div id="quick-checkin-wrap" style="display:none; margin-bottom:1rem;"></div>
 
-      <div class="seg">
+      <div class="seg" id="search-seg">
         <button id="seg-name"  class="active" onclick="setSearchMode('name')">Find by name</button>
         <button id="seg-phone"            onclick="setSearchMode('phone')">Find by phone</button>
       </div>
 
-      <div class="search-wrap">
+      <div class="search-wrap" id="search-input-wrap">
         <i class="ti ti-search" id="search-icon"></i>
         <input type="text" id="search" placeholder="Search your name…"
                oninput="onSearchInput()" autocomplete="off" />
@@ -154,7 +154,7 @@
         <div class="loading">Connecting…</div>
       </div>
 
-      <button class="btn-new" onclick="openNewMemberForm()">
+      <button class="btn-new" id="new-member-btn" onclick="openNewMemberForm()">
         <i class="ti ti-user-plus" style="font-size:16px;"></i> New member
       </button>
     </div>
@@ -280,11 +280,21 @@ async function hashPhone(raw) {
 }
 
 window.onPhoneInput = function (e) {
-  const cursor = e.target.selectionStart;
-  const prev   = e.target.value;
-  const formatted = formatPhone(prev);
-  e.target.value = formatted;
-  e.target.setSelectionRange(Math.min(cursor, formatted.length), Math.min(cursor, formatted.length));
+  const input = e.target;
+  const rawValue = input.value;
+  const selectionStart = input.selectionStart;
+  
+  // Format character sequence calculations
+  const formatted = formatPhone(rawValue);
+  const rawDashesBefore = (rawValue.slice(0, selectionStart).match(/\D/g) || []).length;
+  input.value = formatted;
+  const rawDashesAfter = (formatted.slice(0, selectionStart).match(/\D/g) || []).length;
+  
+  // Reposition context window cleanly
+  const cursorOffset = rawDashesAfter - rawDashesBefore;
+  const newPosition = selectionStart + cursorOffset;
+  input.setSelectionRange(newPosition, newPosition);
+  
   clearErr('phone-err');
 };
 
@@ -319,8 +329,8 @@ window.openNewMemberForm = function () {
 };
 
 window.closeNewMemberForm = function () {
-  document.getElementById('new-member-form').style.display = 'none';
   document.getElementById('checkin-main').style.display   = '';
+  document.getElementById('new-member-form').style.display = 'none';
   ['new-first-name','new-last-name','new-email','new-phone','new-age'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -330,6 +340,7 @@ window.closeNewMemberForm = function () {
     const el = document.getElementById(id);
     if (el) el.classList.remove('show');
   });
+  checkDeviceToken();
 };
 
 // ── Data listeners ────────────────────────────────────────────────────────────
@@ -394,18 +405,33 @@ async function secureDeviceBinding(memberId) {
 window.clearDeviceToken = function () {
   localStorage.removeItem('spya_device_token');
   document.getElementById('quick-checkin-wrap').style.display = 'none';
+  toggleSearchVisibility(true);
 };
+
+function toggleSearchVisibility(show) {
+  const displayVal = show ? '' : 'none';
+  document.getElementById('search-seg').style.display = displayVal;
+  document.getElementById('search-input-wrap').style.display = displayVal;
+  document.getElementById('roster').style.display = displayVal;
+  document.getElementById('new-member-btn').style.display = displayVal;
+}
 
 function checkDeviceToken() {
   const token = localStorage.getItem('spya_device_token');
   const wrap = document.getElementById('quick-checkin-wrap');
-  if (!token || !rosterCache.length) { wrap.style.display = 'none'; return; }
+  if (!token || !rosterCache.length) { 
+    wrap.style.display = 'none'; 
+    toggleSearchVisibility(true);
+    return; 
+  }
 
   const matched = rosterCache.find(m => m.deviceToken === token);
   if (matched) {
     const ci = isCI(matched.id);
     const fullName = matched.name || ((matched.firstName || '') + ' ' + (matched.lastName || '')).trim();
     
+    toggleSearchVisibility(false);
+
     if (ci) {
       wrap.innerHTML = `
         <div class="quick-card" style="background:var(--green-light); border-color:var(--green);">
@@ -415,7 +441,7 @@ function checkDeviceToken() {
     } else {
       wrap.innerHTML = `
         <div class="quick-card">
-          <div class="quick-card-text">👋 Welcome back, <strong>${matched.firstName || fullName}</strong>!<br><span style="text-decoration:underline; font-size:11px; color:var(--text-2); cursor:pointer;" onclick="clearDeviceToken()">Not you? Clear</span></div>
+          <div class="quick-card-text">👋 Welcome back, <strong>${matched.firstName || fullName}</strong>!<br><span style="text-decoration:underline; font-size:11px; color:var(--text-2); cursor:pointer;" onclick="clearDeviceToken()">Not you?</span></div>
           <button class="btn btn-primary" onclick="checkIn('${matched.id}')" style="width:auto; padding:8px 14px; font-size:13px; flex-shrink:0;">Check In</button>
         </div>
       `;
@@ -423,6 +449,7 @@ function checkDeviceToken() {
     wrap.style.display = '';
   } else {
     wrap.style.display = 'none';
+    toggleSearchVisibility(true);
   }
 }
 
@@ -514,7 +541,6 @@ window.checkIn = async function (id) {
     });
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     
-    // SAFE TRIGGER: If they look themselves up safely via phone number, secure this device to them
     if (searchMode === 'phone') {
       await secureDeviceBinding(id);
     }
@@ -538,12 +564,6 @@ function triggerSplash(firstName) {
   setTimeout(() => {
     splash.style.display = 'none';
   }, 2500);
-}
-
-function showToast(msg, type = 'ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 2400);
 }
 
 // ── Add member ────────────────────────────────────────────────────────────────
@@ -580,7 +600,6 @@ window.addMember = async function () {
         await updateDoc(doc(db, 'roster', existingMember.id), { isNew: false });
       }
       
-      // Bind token during duplication intercept
       await secureDeviceBinding(existingMember.id);
       closeNewMemberForm();
       await window.checkIn(existingMember.id);
@@ -605,12 +624,17 @@ window.addMember = async function () {
       });
     }
 
-    // Bind token for brand new registration
     await secureDeviceBinding(ref.id);
     closeNewMemberForm();
     await window.checkIn(ref.id);
   } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
 };
+
+function showToast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
 
 window.showTab = function (tab) {
   ['checkin','tonight'].forEach(t => {
