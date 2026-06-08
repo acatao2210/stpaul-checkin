@@ -58,6 +58,10 @@
     .btn-new { background:var(--bg); color:var(--text); border:0.5px dashed var(--border-2); width:100%; border-radius:var(--radius); padding:10px 14px; font-size:14px; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
     .btn-new:hover { background:var(--bg-2); border-style:solid; }
 
+    /* Quick Checkin Banner */
+    .quick-card { background:var(--blue-light); border:0.5px solid var(--blue); border-radius:var(--radius); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; animation: fadeIn 0.15s ease; }
+    .quick-card-text { font-size:13px; font-weight:500; color:var(--blue); line-height:1.4; }
+
     /* Roster */
     .roster { display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto; margin-bottom:1rem; }
     .member-btn { display:flex; align-items:center; gap:10px; background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius); padding:10px 12px; cursor:pointer; text-align:left; width:100%; font-family:inherit; }
@@ -132,6 +136,8 @@
         <option>Faith Formation</option>
         <option>Other</option>
       </select>
+
+      <div id="quick-checkin-wrap" style="display:none; margin-bottom:1rem;"></div>
 
       <div class="seg">
         <button id="seg-name"  class="active" onclick="setSearchMode('name')">Find by name</button>
@@ -331,12 +337,14 @@ window.closeNewMemberForm = function () {
 onSnapshot(query(collection(db, 'roster'), orderBy('name')), snap => {
   rosterCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderRoster();
+  checkDeviceToken();
 });
 
 onSnapshot(query(collection(db, 'checkins'), where('date', '==', TODAY)), snap => {
   todayCheckins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderRoster();
   renderSummary();
+  checkDeviceToken();
 });
 
 // ── Search mode ───────────────────────────────────────────────────────────────
@@ -367,6 +375,56 @@ window.onSearchInput = async function () {
   }
   renderRoster();
 };
+
+// ── Personal Device Token Management ──────────────────────────────────────────
+
+async function secureDeviceBinding(memberId) {
+  let token = localStorage.getItem('spya_device_token');
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem('spya_device_token', token);
+    try {
+      await updateDoc(doc(db, 'roster', memberId), { deviceToken: token });
+    } catch (e) {
+      console.warn("Could not save device token mapping to Firestore:", e.message);
+    }
+  }
+}
+
+window.clearDeviceToken = function () {
+  localStorage.removeItem('spya_device_token');
+  document.getElementById('quick-checkin-wrap').style.display = 'none';
+};
+
+function checkDeviceToken() {
+  const token = localStorage.getItem('spya_device_token');
+  const wrap = document.getElementById('quick-checkin-wrap');
+  if (!token || !rosterCache.length) { wrap.style.display = 'none'; return; }
+
+  const matched = rosterCache.find(m => m.deviceToken === token);
+  if (matched) {
+    const ci = isCI(matched.id);
+    const fullName = matched.name || ((matched.firstName || '') + ' ' + (matched.lastName || '')).trim();
+    
+    if (ci) {
+      wrap.innerHTML = `
+        <div class="quick-card" style="background:var(--green-light); border-color:var(--green);">
+          <div class="quick-card-text" style="color:var(--green-dark);">👋 Welcome back, ${matched.firstName || fullName}! You are checked in tonight.</div>
+        </div>
+      `;
+    } else {
+      wrap.innerHTML = `
+        <div class="quick-card">
+          <div class="quick-card-text">👋 Welcome back, <strong>${matched.firstName || fullName}</strong>!<br><span style="text-decoration:underline; font-size:11px; color:var(--text-2); cursor:pointer;" onclick="clearDeviceToken()">Not you? Clear</span></div>
+          <button class="btn btn-primary" onclick="checkIn('${matched.id}')" style="width:auto; padding:8px 14px; font-size:13px; flex-shrink:0;">Check In</button>
+        </div>
+      `;
+    }
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
 
 // ── Roster render ─────────────────────────────────────────────────────────────
 
@@ -456,6 +514,11 @@ window.checkIn = async function (id) {
     });
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     
+    // SAFE TRIGGER: If they look themselves up safely via phone number, secure this device to them
+    if (searchMode === 'phone') {
+      await secureDeviceBinding(id);
+    }
+
     const firstName = m.firstName || fullName.split(' ')[0];
     triggerSplash(firstName);
     
@@ -503,7 +566,6 @@ window.addMember = async function () {
     const name = firstName + ' ' + lastName;
     const phoneHash = phone ? await hashPhone(phone) : null;
     
-    // DUPLICATE CHECK: Intercept if member already exists in the cache
     const existingMember = rosterCache.find(m => {
       const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
       const sameName = fullName.toLowerCase() === name.toLowerCase();
@@ -513,12 +575,13 @@ window.addMember = async function () {
     });
 
     if (existingMember) {
-      // FORCE ISNEW TO FALSE ON INTERCEPTION
       if (existingMember.isNew) {
-        existingMember.isNew = false; // Updates local cache object instantly for window.checkIn execution
-        await updateDoc(doc(db, 'roster', existingMember.id), { isNew: false }); // Syncs to Firestore database
+        existingMember.isNew = false;
+        await updateDoc(doc(db, 'roster', existingMember.id), { isNew: false });
       }
       
+      // Bind token during duplication intercept
+      await secureDeviceBinding(existingMember.id);
       closeNewMemberForm();
       await window.checkIn(existingMember.id);
       return;
@@ -541,6 +604,9 @@ window.addMember = async function () {
         email: email || '', phone: phone || '', ageBracket: age || ''
       });
     }
+
+    // Bind token for brand new registration
+    await secureDeviceBinding(ref.id);
     closeNewMemberForm();
     await window.checkIn(ref.id);
   } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
