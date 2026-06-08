@@ -456,11 +456,9 @@ window.checkIn = async function (id) {
     });
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     
-    // TRIGGER FULL SCREEN GREEN SPLASH
     const firstName = m.firstName || fullName.split(' ')[0];
     triggerSplash(firstName);
     
-    // Clear search bar back to blank state ready for next person
     document.getElementById('search').value = '';
     renderRoster();
     
@@ -504,8 +502,25 @@ window.addMember = async function () {
   try {
     const name = firstName + ' ' + lastName;
     const phoneHash = phone ? await hashPhone(phone) : null;
-    const ref = doc(collection(db, 'roster'));
     
+    // DUPLICATE CHECK: Intercept if member already exists in the cache
+    const existingMember = rosterCache.find(m => {
+      const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+      const sameName = fullName.toLowerCase() === name.toLowerCase();
+      const samePhone = phoneHash && m.phoneHash === phoneHash;
+      
+      // Match by phone hash if provided; otherwise, fall back to exact name match
+      return samePhone || (sameName && !phoneHash);
+    });
+
+    if (existingMember) {
+      // Graceful intercept: skip database write, clear form, and check them in directly
+      closeNewMemberForm();
+      await window.checkIn(existingMember.id);
+      return;
+    }
+
+    const ref = doc(collection(db, 'roster'));
     const rosterDoc = { 
       firstName, 
       lastName, 
