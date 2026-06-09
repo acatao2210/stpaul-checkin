@@ -240,7 +240,6 @@
 
 <script type="module">
 import { initializeApp }                              from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { initializeAppCheck, ReCaptchaV3Provider }    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 import { getAuth, signInAnonymously, onAuthStateChanged }
                                                       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, doc,
@@ -258,18 +257,6 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
-
-// ── App Check ─────────────────────────────────────────────────────────────────
-// On localhost, App Check prints a debug token to the console on first run.
-// Copy that token into Firebase Console → App Check → Debug tokens.
-if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-}
-initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('Y6LfRchYtAAAAACLhqSUtfs0oiLvjn7SvD4ZAvTY-'),
-  isTokenAutoRefreshEnabled: true
-});
-
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
