@@ -671,6 +671,10 @@ window.addMember = async function () {
 
     await setDoc(ref, rosterDoc);
     
+    // Optimistically add to rosterCache so checkIn can find the new member
+    // immediately, without waiting for the onSnapshot to fire asynchronously.
+    rosterCache.push({ id: ref.id, ...rosterDoc });
+    
     if (email || phone || month || year) {
       await setDoc(doc(db, 'contacts', ref.id), {
         email: email || '', phone: phone || '', 
