@@ -186,30 +186,30 @@
         <p class="field-err" id="phone-err">Enter a 10-digit phone number.</p>
       </div>
 
-<div class="field" style="display: flex; gap: 10px;">
-  <div style="flex: 1;">
-    <label>Month</label>
-    <select id="new-birth-month">
-      <option value="">Month</option>
-      <option value="01">January</option>
-      <option value="02">February</option>
-      <option value="03">March</option>
-      <option value="04">April</option>
-      <option value="05">May</option>
-      <option value="06">June</option>
-      <option value="07">July</option>
-      <option value="08">August</option>
-      <option value="09">September</option>
-      <option value="10">October</option>
-      <option value="11">November</option>
-      <option value="12">December</option>
-    </select>
-  </div>
-  <div style="flex: 1;">
-    <label>Year</label>
-    <input type="number" id="new-birth-year" placeholder="YYYY" min="1900" max="2026" />
-  </div>
-</div>
+      <div class="field" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+          <label>Month</label>
+          <select id="new-birth-month">
+            <option value="">Month</option>
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        <div style="flex: 1;">
+          <label>Year</label>
+          <input type="number" id="new-birth-year" placeholder="YYYY" min="1900" max="2026" />
+        </div>
+      </div>
 
       <div class="form-actions">
         <button class="btn btn-primary" onclick="addMember()">Add &amp; check in</button>
@@ -239,11 +239,13 @@
 <div class="toast ok" id="toast"></div>
 
 <script type="module">
-import { initializeApp }                       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInAnonymously }          from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp }                              from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider }    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
+import { getAuth, signInAnonymously, onAuthStateChanged }
+                                                      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, doc,
-         addDoc, setDoc, updateDoc, getDoc,
-         onSnapshot, query, orderBy, where }   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+         setDoc, updateDoc,
+         onSnapshot, query, orderBy, where }          from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyBGoE6EWX6v_ypOPZHNyMfmC7Ftx29yB3s",
@@ -256,6 +258,18 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
+
+// ── App Check ─────────────────────────────────────────────────────────────────
+// On localhost, App Check prints a debug token to the console on first run.
+// Copy that token into Firebase Console → App Check → Debug tokens.
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('Y6LfRchYtAAAAACLhqSUtfs0oiLvjn7SvD4ZAvTY-'),
+  isTokenAutoRefreshEnabled: true
+});
+
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
@@ -266,8 +280,33 @@ document.getElementById('date-label').textContent = new Date().toLocaleDateStrin
 
 let rosterCache = [], todayCheckins = [];
 let searchMode = 'name', phoneSearchHash = null;
+let listenersStarted = false;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+// Sign in anonymously so Firestore rules (which require isAuthenticated())
+// allow roster reads and checkin writes. Listeners only start after auth
+// resolves to avoid permission-denied errors on first load.
 
 signInAnonymously(auth).catch(e => console.warn('Anon auth:', e.message));
+
+onAuthStateChanged(auth, user => {
+  if (user && !listenersStarted) {
+    listenersStarted = true;
+
+    onSnapshot(query(collection(db, 'roster'), orderBy('name')), snap => {
+      rosterCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderRoster();
+      checkDeviceToken();
+    });
+
+    onSnapshot(query(collection(db, 'checkins'), where('date', '==', TODAY)), snap => {
+      todayCheckins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderRoster();
+      renderSummary();
+      checkDeviceToken();
+    });
+  }
+});
 
 // ── Phone formatting & hashing ────────────────────────────────────────────────
 
@@ -292,13 +331,11 @@ window.onPhoneInput = function (e) {
   const rawValue = input.value;
   const selectionStart = input.selectionStart;
   
-  // Format character sequence calculations
   const formatted = formatPhone(rawValue);
   const rawDashesBefore = (rawValue.slice(0, selectionStart).match(/\D/g) || []).length;
   input.value = formatted;
   const rawDashesAfter = (formatted.slice(0, selectionStart).match(/\D/g) || []).length;
   
-  // Reposition context window cleanly
   const cursorOffset = rawDashesAfter - rawDashesBefore;
   const newPosition = selectionStart + cursorOffset;
   input.setSelectionRange(newPosition, newPosition);
@@ -351,21 +388,6 @@ window.closeNewMemberForm = function () {
   checkDeviceToken();
 };
 
-// ── Data listeners ────────────────────────────────────────────────────────────
-
-onSnapshot(query(collection(db, 'roster'), orderBy('name')), snap => {
-  rosterCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderRoster();
-  checkDeviceToken();
-});
-
-onSnapshot(query(collection(db, 'checkins'), where('date', '==', TODAY)), snap => {
-  todayCheckins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderRoster();
-  renderSummary();
-  checkDeviceToken();
-});
-
 // ── Search mode ───────────────────────────────────────────────────────────────
 
 window.setSearchMode = function (mode) {
@@ -403,6 +425,7 @@ async function secureDeviceBinding(memberId) {
     token = crypto.randomUUID();
     localStorage.setItem('spya_device_token', token);
     try {
+      // deviceToken is whitelisted in Firestore rules for non-admin updates
       await updateDoc(doc(db, 'roster', memberId), { deviceToken: token });
     } catch (e) {
       console.warn("Could not save device token mapping to Firestore:", e.message);
@@ -553,12 +576,10 @@ window.checkIn = async function (id) {
   
   const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
 
-  // Silently fetch age bracket from contacts (single lightweight read)
-  let ageBracket = null;
-  try {
-    const contactSnap = await getDoc(doc(db, 'contacts', id));
-    if (contactSnap.exists()) ageBracket = getAgeBracket(contactSnap.data().birthYear);
-  } catch (_) { /* non-blocking — checkin still proceeds without bracket */ }
+  // Read ageBracket from the roster cache (set at registration time).
+  // We no longer read from the contacts collection here — contacts are
+  // admin-only under the updated Firestore rules.
+  const ageBracket = m.ageBracket || null;
 
   try {
     const checkinData = {
@@ -570,7 +591,12 @@ window.checkIn = async function (id) {
       userAgent: navigator.userAgent || 'unknown'
     };
     if (ageBracket) checkinData.ageBracket = ageBracket;
-    await addDoc(collection(db, 'checkins'), checkinData);
+
+    // Document ID is memberId_date so Firestore rules can enforce one
+    // check-in per member per day at the database level (a second write
+    // becomes an update, which anonymous sessions cannot perform).
+    await setDoc(doc(db, 'checkins', id + '_' + TODAY), checkinData);
+
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     
     if (searchMode === 'phone') {
@@ -639,16 +665,23 @@ window.addMember = async function () {
       return;
     }
 
+    // Compute ageBracket from the birth year the user just entered and
+    // store it in the roster doc. This keeps age bracket available at
+    // check-in time without requiring a read from the contacts collection
+    // (which is admin-only under the updated Firestore rules).
+    const ageBracket = year ? getAgeBracket(year) : null;
+
     const ref = doc(collection(db, 'roster'));
     const rosterDoc = { 
       firstName, 
       lastName, 
       name, 
       isNew: true, 
-      joined: TODAY 
+      joined: TODAY
     };
-    
     if (phoneHash) rosterDoc.phoneHash = phoneHash;
+    if (ageBracket) rosterDoc.ageBracket = ageBracket;
+
     await setDoc(ref, rosterDoc);
     
     if (email || phone || month || year) {
@@ -664,6 +697,11 @@ window.addMember = async function () {
     await window.checkIn(ref.id);
   } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
 };
+
+function showErr(errId, inputId) {
+  document.getElementById(errId).classList.add('show');
+  document.getElementById(inputId).classList.add('error');
+}
 
 function showToast(msg, type = 'ok') {
   const t = document.getElementById('toast');
