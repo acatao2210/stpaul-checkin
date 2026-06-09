@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>St. Paul's Young Adults · Admin</title>
+  <title>St. Paul's Young Adults · Check In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
@@ -13,77 +13,100 @@
     :root {
       --green:#0F6E56; --green-light:#E1F5EE; --green-mid:#9FE1CB; --green-dark:#085041;
       --blue:#185FA5; --blue-light:#E6F1FB; --red:#A32D2D; --red-light:#FCEBEB;
-      --amber-light:#FAEEDA; --amber-dark:#633806; --purple:#534AB7; --purple-light:#EEEDFE;
-      --text:#111; --text-2:#555; --text-3:#999; --bg:#fff; --bg-2:#f7f7f5; --bg-3:#ededeb;
+      --amber-light:#FAEEDA; --amber-dark:#633806;
+      --text:#111; --text-2:#555; --text-3:#999;
+      --bg:#fff; --bg-2:#f7f7f5; --bg-3:#ededeb;
       --border:#e5e5e3; --border-2:#d0d0ce; --radius:8px; --radius-lg:12px;
     }
     body { font-family:'Inter',system-ui,sans-serif; background:var(--bg-2); color:var(--text); min-height:100vh; display:flex; justify-content:center; padding:0 1rem 3rem; }
     .app { width:100%; max-width:420px; }
+
+    /* Header */
     .header { padding:1.25rem 0 1rem; border-bottom:0.5px solid var(--border); margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:flex-start; }
     .header h1 { font-size:18px; font-weight:500; }
-    .header p { font-size:13px; color:var(--text-2); margin-top:2px; }
-    .nav-link { font-size:12px; color:var(--text-2); text-decoration:none; border:0.5px solid var(--border-2); padding:6px 10px; border-radius:var(--radius); white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
+    .header p  { font-size:13px; color:var(--text-2); margin-top:2px; }
+    .nav-link  { font-size:12px; color:var(--text-2); text-decoration:none; border:0.5px solid var(--border-2); padding:6px 10px; border-radius:var(--radius); white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
     .nav-link:hover { background:var(--bg); }
+
+    /* Tabs */
     .tab-row { display:flex; gap:6px; margin-bottom:1.25rem; }
     .tab { flex:1; padding:8px 4px; font-size:13px; font-family:inherit; border:0.5px solid var(--border-2); border-radius:var(--radius); background:var(--bg); cursor:pointer; color:var(--text-2); }
     .tab.active { background:var(--text); color:var(--bg); border-color:var(--text); }
-    input, select { width:100%; padding:9px 12px; font-size:14px; font-family:inherit; border:0.5px solid var(--border-2); border-radius:var(--radius); background:var(--bg); color:var(--text); outline:none; }
+
+    /* Inputs */
+    input, select { width:100%; padding:9px 12px; font-size:14px; font-family:inherit; border:0.5px solid var(--border-2); border-radius:var(--radius); background:var(--bg); color:var(--text); outline:none; transition:border-color 0.15s; }
     input:focus, select:focus { border-color:var(--green); }
-    input[type=password] { letter-spacing:0.1em; }
-    .seg { display:flex; gap:0; margin-bottom:0.75rem; border:0.5px solid var(--border-2); border-radius:var(--radius); overflow:hidden; }
+    input.error { border-color:var(--red); }
+
+    /* Search */
+    .seg { display:flex; margin-bottom:0.75rem; border:0.5px solid var(--border-2); border-radius:var(--radius); overflow:hidden; }
     .seg button { flex:1; padding:8px; font-size:13px; font-family:inherit; background:var(--bg); border:none; cursor:pointer; color:var(--text-2); }
     .seg button.active { background:var(--text); color:var(--bg); }
     .search-wrap { position:relative; margin-bottom:0.75rem; }
     .search-wrap i { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--text-3); pointer-events:none; }
     .search-wrap input { padding-left:34px; }
     .event-select { margin-bottom:1.25rem; }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 14px; font-size:14px; font-family:inherit; font-weight:500; border-radius:var(--radius); cursor:pointer; border:none; }
+
+    /* Buttons */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 14px; font-size:14px; font-family:inherit; font-weight:500; border-radius:var(--radius); cursor:pointer; border:none; transition:opacity 0.15s, background 0.15s; }
     .btn:active { opacity:0.82; }
     .btn-primary { background:var(--text); color:var(--bg); width:100%; }
     .btn-outline { background:var(--bg); color:var(--text); border:0.5px solid var(--border-2); }
     .btn-outline:hover { background:var(--bg-2); }
-    .btn-sm { padding:6px 10px; font-size:12px; }
-    .btn-danger { color:var(--red); border-color:#F09595; background:transparent; }
-    .btn-danger:hover { background:var(--red-light); }
+    .btn-ghost { background:transparent; color:var(--text-2); border:none; font-size:13px; padding:6px 0; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-family:inherit; }
+    .btn-ghost:hover { color:var(--text); }
+    .btn-new { background:var(--bg); color:var(--text); border:0.5px dashed var(--border-2); width:100%; border-radius:var(--radius); padding:10px 14px; font-size:14px; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .btn-new:hover { background:var(--bg-2); border-style:solid; }
+
+    /* Quick Checkin Banner */
+    .quick-card { background:var(--blue-light); border:0.5px solid var(--blue); border-radius:var(--radius); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; animation: fadeIn 0.15s ease; }
+    .quick-card-text { font-size:13px; font-weight:500; color:var(--blue); line-height:1.4; }
+
+    /* Roster */
     .roster { display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto; margin-bottom:1rem; }
     .member-btn { display:flex; align-items:center; gap:10px; background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius); padding:10px 12px; cursor:pointer; text-align:left; width:100%; font-family:inherit; }
     .member-btn:hover { background:var(--bg-2); }
-    .member-btn.ci { border-color:var(--green); background:var(--green-light); }
+    .member-btn.ci     { border-color:var(--green); background:var(--green-light); }
     .member-btn.static { cursor:default; }
     .avatar { width:36px; height:36px; border-radius:50%; background:var(--blue-light); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:500; color:var(--blue); flex-shrink:0; }
     .avatar.green { background:var(--green-mid); color:var(--green-dark); }
-    .avatar.amber { background:var(--amber-light); color:var(--amber-dark); }
     .member-name { font-size:14px; font-weight:500; }
-    .member-sub { font-size:12px; color:var(--text-2); }
-    .check-icon { color:var(--green); font-size:18px; margin-left:auto; }
+    .member-sub  { font-size:12px; color:var(--text-2); }
+    .check-icon  { color:var(--green); font-size:18px; margin-left:auto; }
+
+    /* New member form */
+    .form-view { animation: fadeIn 0.15s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+    .form-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+    .form-header h2 { font-size:16px; font-weight:500; }
+    .field { margin-bottom:1rem; }
+    .field label { display:block; font-size:12px; font-weight:500; color:var(--text-2); margin-bottom:5px; }
+    .field-hint { font-size:11px; color:var(--text-3); margin-top:4px; }
+    .field-err  { font-size:11px; color:var(--red); margin-top:4px; display:none; }
+    .field-err.show { display:block; }
+    .form-actions { display:flex; flex-direction:column; gap:8px; margin-top:1.25rem; }
+
+    /* Stats & layout */
     .divider { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin:1rem 0 0.5rem; }
-    .surface { background:var(--bg-2); border-radius:var(--radius-lg); padding:1rem; margin-bottom:1rem; }
-    .field { margin-bottom:0.75rem; }
-    .field label { display:block; font-size:12px; color:var(--text-2); margin-bottom:4px; }
-    .card { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:1rem; }
     .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:1.25rem; }
     .stat { background:var(--bg-2); border-radius:var(--radius); padding:0.75rem; }
-    .stat-val { font-size:24px; font-weight:500; }
+    .stat-val   { font-size:24px; font-weight:500; }
     .stat-label { font-size:12px; color:var(--text-2); margin-top:2px; }
-    .bar-wrap { margin-bottom:0.5rem; }
-    .bar-label { display:flex; justify-content:space-between; font-size:12px; color:var(--text-2); margin-bottom:3px; }
-    .bar-track { height:8px; background:var(--bg-3); border-radius:4px; overflow:hidden; }
-    .bar-fill { height:100%; background:var(--green); border-radius:4px; }
-    .bar-fill.blue { background:var(--blue); }
-    .bar-fill.purple { background:var(--purple); }
-    .admin-list { max-height:280px; overflow-y:auto; margin-bottom:1rem; }
-    .admin-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--border); }
-    .admin-row:last-child { border-bottom:none; }
-    .export-row { display:flex; gap:8px; margin-bottom:1rem; }
-    .info-box { background:var(--green-light); border-radius:var(--radius); padding:0.6rem 0.75rem; font-size:12px; color:var(--green-dark); margin-bottom:1rem; display:flex; align-items:flex-start; gap:6px; line-height:1.5; }
-    .info-box i { flex-shrink:0; margin-top:1px; }
+
+    /* Toast */
     .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); font-size:13px; padding:8px 18px; border-radius:var(--radius); white-space:nowrap; opacity:0; transition:opacity 0.2s; pointer-events:none; z-index:99; font-family:inherit; }
-    .toast.ok { background:var(--green-dark); color:var(--green-light); }
+    .toast.ok  { background:var(--green-dark); color:var(--green-light); }
     .toast.err { background:var(--red); color:#fff; }
     .toast.show { opacity:1; }
-    .empty { font-size:13px; color:var(--text-3); padding:1.5rem 0; text-align:center; }
+    .empty   { font-size:13px; color:var(--text-3); padding:1.5rem 0; text-align:center; }
     .loading { font-size:13px; color:var(--text-3); padding:1rem 0; text-align:center; }
-    .admin-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+
+    /* Full Screen Splash Overlay */
+    .splash-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:var(--green); color:#fff; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; }
+    .splash-overlay i { font-size:80px; margin-bottom:1rem; animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .splash-overlay h2 { font-size:28px; font-weight:500; margin-bottom:0.5rem; }
+    .splash-overlay p { font-size:16px; opacity:0.85; }
+    @keyframes scaleUp { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
   </style>
 </head>
 <body>
@@ -91,62 +114,123 @@
 
   <div class="header">
     <div>
-      <h1>Admin Panel</h1>
-      <p>St. Paul's Young Adults</p>
+      <h1>St. Paul's Young Adults</h1>
+      <p id="date-label"></p>
     </div>
-    <a class="nav-link" href="index.html"><i class="ti ti-arrow-left" style="font-size:14px;"></i> Check-in</a>
+    <a class="nav-link" href="admin.html"><i class="ti ti-lock" style="font-size:14px;"></i> Admin</a>
   </div>
 
-  <!-- Login gate -->
-  <div id="admin-login">
-    <div class="card">
-      <p style="font-size:14px;font-weight:500;margin-bottom:4px;">Sign in</p>
-      <p style="font-size:12px;color:var(--text-2);margin-bottom:1rem;">Use the email and password from your Firebase Auth account.</p>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <input type="email"    id="admin-email"    placeholder="Admin email" />
-        <input type="password" id="admin-password" placeholder="Password" onkeydown="if(event.key==='Enter')adminLogin()" />
-        <button class="btn btn-primary" onclick="adminLogin()">Sign in</button>
+  <div id="view-checkin">
+
+    <div id="checkin-main">
+       <select class="event-select" id="event-type">
+        <option>Wednesday Night</option>
+        <option>Mass</option>
+        <option>Service Day</option>
+        <option>Social Event</option>
+        <option>Faith Formation</option>
+        <option>Other</option>
+      </select> 
+
+      <div id="quick-checkin-wrap" style="display:none; margin-bottom:1rem;"></div>
+
+      <div class="seg" id="search-seg">
+        <button id="seg-name"  class="active" onclick="setSearchMode('name')">Find by name</button>
+        <button id="seg-phone"            onclick="setSearchMode('phone')">Find by phone</button>
+      </div>
+
+      <div class="search-wrap" id="search-input-wrap">
+        <i class="ti ti-search" id="search-icon"></i>
+        <input type="text" id="search" placeholder="Search your name…"
+               oninput="onSearchInput()" autocomplete="off" />
+      </div>
+
+      <div class="roster" id="roster">
+        <div class="loading">Connecting…</div>
+      </div>
+
+      <button class="btn-new" id="new-member-btn" onclick="openNewMemberForm()">
+        <i class="ti ti-user-plus" style="font-size:16px;"></i> New member
+      </button>
+    </div>
+
+    <div id="new-member-form" class="form-view" style="display:none;">
+      <div class="form-header">
+        <h2>New member</h2>
+        <button class="btn-ghost" onclick="closeNewMemberForm()">
+          <i class="ti ti-x" style="font-size:14px;"></i> Cancel
+        </button>
+      </div>
+
+      <div class="field">
+        <label>First name <span style="color:var(--red);">*</span></label>
+        <input type="text" id="new-first-name" placeholder="First name" autocomplete="off" oninput="clearErr('first-name-err')" />
+        <p class="field-err" id="first-name-err">Please enter a first name.</p>
+      </div>
+
+      <div class="field">
+        <label>Last name <span style="color:var(--red);">*</span></label>
+        <input type="text" id="new-last-name" placeholder="Last name" autocomplete="off" oninput="clearErr('last-name-err')" />
+        <p class="field-err" id="last-name-err">Please enter a last name.</p>
+      </div>
+
+      <div class="field">
+        <label>Email <span style="color:var(--text-3);font-weight:400;">(admin only)</span></label>
+        <input type="email" id="new-email" placeholder="email@example.com" autocomplete="off"
+               oninput="clearErr('email-err')" />
+        <p class="field-err" id="email-err">Enter a valid email address (e.g. name@example.com).</p>
+      </div>
+
+      <div class="field">
+        <label>Phone <span style="color:var(--text-3);font-weight:400;">(for check-in lookup)</span></label>
+        <input type="tel" id="new-phone" placeholder="(555) 123-4567" autocomplete="off"
+               oninput="onPhoneInput(event)" />
+        <p class="field-hint">Used to find yourself at future events. Stored privately.</p>
+        <p class="field-err" id="phone-err">Enter a 10-digit phone number.</p>
+      </div>
+
+      <div class="field">
+        <label>Age bracket</label>
+        <select id="new-age">
+          <option value="">Select…</option>
+          <option value="20-29">20–29</option>
+          <option value="30-39">30–39</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="addMember()">Add &amp; check in</button>
+        <button class="btn btn-outline" onclick="closeNewMemberForm()" style="width:100%;">Cancel</button>
       </div>
     </div>
+
   </div>
 
-  <!-- Admin content -->
-  <div id="admin-content" style="display:none;">
-    <div class="admin-top">
-      <p style="font-size:13px;color:var(--text-2);" id="admin-user-label"></p>
-      <button class="btn btn-outline btn-sm" onclick="adminLogout()"><i class="ti ti-logout" style="font-size:14px;"></i> Sign out</button>
+  <div id="view-tonight" style="display:none;">
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Checked in</div></div>
+      <div class="stat"><div class="stat-val" id="stat-new">0</div><div class="stat-label">First-timers</div></div>
     </div>
-
-    <div class="info-box"><i class="ti ti-shield-check"></i> Contact details load only after sign-in and are never sent to the public check-in page.</div>
-
-    <div class="divider">Export</div>
-    <div class="export-row">
-      <button class="btn btn-outline" onclick="exportCSV('attendance')"><i class="ti ti-download"></i> Attendance</button>
-      <button class="btn btn-outline" onclick="exportCSV('roster')"><i class="ti ti-download"></i> Roster</button>
-    </div>
-
-    <div class="divider">Attendance trends</div>
-    <div id="trends-section" style="margin-bottom:1rem;"></div>
-
-    <div class="divider">Event breakdown</div>
-    <div id="event-breakdown" style="margin-bottom:1rem;"></div>
-
-    <div class="divider">Age brackets</div>
-    <div id="age-breakdown" style="margin-bottom:1rem;"></div>
-
-    <div class="divider">Members <span id="roster-count" style="color:var(--text-3);font-weight:400;font-size:11px;"></span></div>
-    <div class="admin-list" id="admin-roster"></div>
+    <div class="divider">Attendees</div>
+    <div class="roster" id="summary-list"><div class="empty">No one checked in yet</div></div>
   </div>
 
 </div>
+
+<div class="splash-overlay" id="splash-screen">
+  <i class="ti ti-circle-check"></i>
+  <h2 id="splash-title">Welcome!</h2>
+  <p>You're all checked in.</p>
+</div>
+
 <div class="toast ok" id="toast"></div>
 
 <script type="module">
-import { initializeApp }                from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-                                        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, doc, deleteDoc, getDocs, onSnapshot, query, orderBy }
-                                        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp }                       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInAnonymously }          from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, doc,
+         addDoc, setDoc, updateDoc,
+         onSnapshot, query, orderBy, where }   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyBGoE6EWX6v_ypOPZHNyMfmC7Ftx29yB3s",
@@ -162,159 +246,383 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-let rosterCache = [], checkinsCache = [], contactsCache = {};
-let isAdmin = false;
-
-onAuthStateChanged(auth, user => {
-  if (user && !user.isAnonymous) {
-    isAdmin = true;
-    document.getElementById('admin-login').style.display   = 'none';
-    document.getElementById('admin-content').style.display = '';
-    document.getElementById('admin-user-label').textContent = user.email;
-    loadContacts();
-    renderAll();
-  } else {
-    isAdmin = false;
-    contactsCache = {};
-    document.getElementById('admin-login').style.display   = '';
-    document.getElementById('admin-content').style.display = 'none';
-  }
+const TODAY = new Date().toISOString().slice(0, 10);
+document.getElementById('date-label').textContent = new Date().toLocaleDateString('en-US', {
+  weekday: 'long', month: 'long', day: 'numeric'
 });
 
-window.adminLogin = async function () {
-  const email = document.getElementById('admin-email').value.trim();
-  const pw    = document.getElementById('admin-password').value;
-  if (!email || !pw) { showToast('Enter email and password', 'err'); return; }
-  try { await signInWithEmailAndPassword(auth, email, pw); }
-  catch (e) {
-    const msg = ['auth/wrong-password','auth/user-not-found','auth/invalid-credential'].includes(e.code)
-      ? 'Incorrect email or password' : e.message;
-    showToast(msg, 'err');
-  }
+let rosterCache = [], todayCheckins = [];
+let searchMode = 'name', phoneSearchHash = null;
+
+signInAnonymously(auth).catch(e => console.warn('Anon auth:', e.message));
+
+// ── Phone formatting & hashing ────────────────────────────────────────────────
+
+function formatPhone(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3)  return digits;
+  if (digits.length <= 6)  return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+  return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+}
+
+function digitsOnly(val) { return (val || '').replace(/\D/g, ''); }
+
+async function hashPhone(raw) {
+  const digits = digitsOnly(raw).slice(-10);
+  if (digits.length !== 10) return null;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(digits));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+window.onPhoneInput = function (e) {
+  const input = e.target;
+  const rawValue = input.value;
+  const selectionStart = input.selectionStart;
+  
+  // Format character sequence calculations
+  const formatted = formatPhone(rawValue);
+  const rawDashesBefore = (rawValue.slice(0, selectionStart).match(/\D/g) || []).length;
+  input.value = formatted;
+  const rawDashesAfter = (formatted.slice(0, selectionStart).match(/\D/g) || []).length;
+  
+  // Reposition context window cleanly
+  const cursorOffset = rawDashesAfter - rawDashesBefore;
+  const newPosition = selectionStart + cursorOffset;
+  input.setSelectionRange(newPosition, newPosition);
+  
+  clearErr('phone-err');
 };
 
-window.adminLogout = async function () {
-  contactsCache = {};
-  await signOut(auth);
-  showToast('Signed out');
-  document.getElementById('admin-email').value    = '';
-  document.getElementById('admin-password').value = '';
+// ── Validation ────────────────────────────────────────────────────────────────
+
+function isValidEmail(email) {
+  if (!email) return true;
+  const at = email.indexOf('@');
+  if (at < 1) return false;
+  const after = email.slice(at + 1);
+  return after.includes('.');
+}
+
+function isValidPhone(val) {
+  if (!val) return true;
+  return digitsOnly(val).length === 10;
+}
+
+window.clearErr = function (id) {
+  document.getElementById(id).classList.remove('show');
+  const inputId = 'new-' + id.replace('-err', '');
+  const input = document.getElementById(inputId);
+  if (input) input.classList.remove('error');
 };
 
-// ── Live data (roster + checkins are public; safe to listen anytime) ──────────
+// ── New member form visibility ────────────────────────────────────────────────
+
+window.openNewMemberForm = function () {
+  document.getElementById('checkin-main').style.display   = 'none';
+  document.getElementById('new-member-form').style.display = '';
+  document.getElementById('new-first-name').focus();
+};
+
+window.closeNewMemberForm = function () {
+  document.getElementById('checkin-main').style.display   = '';
+  document.getElementById('new-member-form').style.display = 'none';
+  ['new-first-name','new-last-name','new-email','new-phone','new-age'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+    el && el.classList.remove('error');
+  });
+  ['first-name-err','last-name-err','email-err','phone-err'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  });
+  checkDeviceToken();
+};
+
+// ── Data listeners ────────────────────────────────────────────────────────────
+
 onSnapshot(query(collection(db, 'roster'), orderBy('name')), snap => {
   rosterCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (isAdmin) renderAll();
-});
-onSnapshot(query(collection(db, 'checkins'), orderBy('ts', 'desc')), snap => {
-  checkinsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (isAdmin) renderAll();
+  renderRoster();
+  checkDeviceToken();
 });
 
-async function loadContacts() {
-  try {
-    const snap = await getDocs(collection(db, 'contacts'));
-    contactsCache = {};
-    snap.docs.forEach(d => { contactsCache[d.id] = d.data(); });
-    renderAll();
-  } catch (e) { showToast('Could not load contacts: ' + e.message, 'err'); }
-}
+onSnapshot(query(collection(db, 'checkins'), where('date', '==', TODAY)), snap => {
+  todayCheckins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderRoster();
+  renderSummary();
+  checkDeviceToken();
+});
 
-// ── Render ──────────────────────────────────────────────────────────────────
-function initials(n) { return n.trim().split(' ').map(p => p[0] || '').join('').toUpperCase().slice(0, 2); }
+// ── Search mode ───────────────────────────────────────────────────────────────
 
-function renderAll() {
-  document.getElementById('roster-count').textContent = '(' + rosterCache.length + ')';
-  renderTrends(); renderEventBreakdown(); renderAgeBreakdown(); renderAdminRoster();
-}
-
-function bars(entries, total, cls) {
-  if (!entries.length) return '<div class="empty">No data yet</div>';
-  const max = Math.max(...entries.map(e => e[1]));
-  return entries.map(([label, cnt]) => {
-    const pct = max > 0 ? Math.round((cnt / max) * 100) : 0;
-    const extra = total ? ' (' + Math.round((cnt / total) * 100) + '%)' : '';
-    return '<div class="bar-wrap"><div class="bar-label"><span>' + label + '</span><span>' + cnt + extra + '</span></div>' +
-      '<div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + pct + '%"></div></div></div>';
-  }).join('');
-}
-
-function renderTrends() {
-  const byDate = {};
-  checkinsCache.forEach(c => { byDate[c.date] = (byDate[c.date] || 0) + 1; });
-  const dates = Object.keys(byDate).sort().slice(-8);
-  const entries = dates.map(d => [new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), byDate[d]]);
-  document.getElementById('trends-section').innerHTML = bars(entries, 0, '');
-}
-
-function renderEventBreakdown() {
-  const byEvt = {};
-  checkinsCache.forEach(c => { byEvt[c.event] = (byEvt[c.event] || 0) + 1; });
-  const entries = Object.entries(byEvt).sort((a, b) => b[1] - a[1]);
-  document.getElementById('event-breakdown').innerHTML = bars(entries, checkinsCache.length, 'blue');
-}
-
-function renderAgeBreakdown() {
-  const byAge = {};
-  rosterCache.forEach(m => {
-    const a = (contactsCache[m.id] && contactsCache[m.id].ageBracket) || 'Unknown';
-    byAge[a] = (byAge[a] || 0) + 1;
-  });
-  const order = ['20-29', '30-39', 'Unknown'];
-  const entries = Object.entries(byAge).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
-    .map(([k, v]) => [k === '20-29' ? '20–29' : k === '30-39' ? '30–39' : k, v]);
-  document.getElementById('age-breakdown').innerHTML = bars(entries, rosterCache.length, 'purple');
-}
-
-function renderAdminRoster() {
-  const el = document.getElementById('admin-roster');
-  if (!rosterCache.length) { el.innerHTML = '<div class="empty">No members yet</div>'; return; }
-  el.innerHTML = rosterCache.map(m => {
-    const visits = checkinsCache.filter(c => c.memberId === m.id).length;
-    const c = contactsCache[m.id] || {};
-    const parts = [];
-    if (c.email) parts.push(c.email);
-    if (c.phone) parts.push(c.phone);
-    if (c.ageBracket) parts.push(c.ageBracket === '20-29' ? '20–29' : '30–39');
-    const sub = (parts.join(' · ') || 'No contact info') + ' · ' + visits + ' visit' + (visits !== 1 ? 's' : '');
-    return '<div class="admin-row">' +
-      '<div class="avatar amber">' + initials(m.name) + '</div>' +
-      '<div style="flex:1;"><div class="member-name">' + m.name + '</div><div class="member-sub">' + sub + '</div></div>' +
-      '<button class="btn btn-outline btn-sm btn-danger" onclick="removeMember(\'' + m.id + '\')">Remove</button>' +
-    '</div>';
-  }).join('');
-}
-
-window.removeMember = async function (id) {
-  if (!confirm('Remove this member?')) return;
-  try {
-    await deleteDoc(doc(db, 'roster', id));
-    await deleteDoc(doc(db, 'contacts', id)).catch(() => {});
-    delete contactsCache[id];
-    showToast('Member removed');
-  } catch (e) { showToast('Could not remove member', 'err'); }
+window.setSearchMode = function (mode) {
+  searchMode = mode;
+  phoneSearchHash = null;
+  document.getElementById('seg-name').className  = mode === 'name'  ? 'active' : '';
+  document.getElementById('seg-phone').className = mode === 'phone' ? 'active' : '';
+  const inp  = document.getElementById('search');
+  const icon = document.getElementById('search-icon');
+  inp.value  = '';
+  if (mode === 'phone') {
+    inp.type        = 'tel';
+    inp.placeholder = 'Enter your full phone number';
+    icon.className  = 'ti ti-phone';
+  } else {
+    inp.type        = 'text';
+    inp.placeholder = 'Search your name…';
+    icon.className  = 'ti ti-search';
+  }
+  renderRoster();
 };
 
-// ── Export ────────────────────────────────────────────────────────────────────
-window.exportCSV = function (type) {
-  let csv = '', filename = '';
-  const esc = s => ('' + (s || '')).replace(/"/g, '""');
-  if (type === 'attendance') {
-    csv = 'Date,Event,Name,First Timer\n';
-    checkinsCache.forEach(c => { csv += c.date + ',"' + esc(c.event) + '","' + esc(c.memberName) + '",' + (c.isNew ? 'Yes' : 'No') + '\n'; });
-    filename = 'attendance.csv';
-  } else {
-    csv = 'Name,Email,Phone,Age Bracket,Joined,Total Visits\n';
-    rosterCache.forEach(m => {
-      const c = contactsCache[m.id] || {};
-      const visits = checkinsCache.filter(x => x.memberId === m.id).length;
-      csv += '"' + esc(m.name) + '","' + esc(c.email) + '","' + esc(c.phone) + '","' + esc(c.ageBracket) + '","' + (m.joined || '') + '",' + visits + '\n';
-    });
-    filename = 'roster.csv';
+window.onSearchInput = async function () {
+  if (searchMode === 'phone') {
+    phoneSearchHash = await hashPhone(document.getElementById('search').value);
   }
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
-  showToast('Exported ' + filename);
+  renderRoster();
+};
+
+// ── Personal Device Token Management ──────────────────────────────────────────
+
+async function secureDeviceBinding(memberId) {
+  let token = localStorage.getItem('spya_device_token');
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem('spya_device_token', token);
+    try {
+      await updateDoc(doc(db, 'roster', memberId), { deviceToken: token });
+    } catch (e) {
+      console.warn("Could not save device token mapping to Firestore:", e.message);
+    }
+  }
+}
+
+window.clearDeviceToken = function () {
+  localStorage.removeItem('spya_device_token');
+  document.getElementById('quick-checkin-wrap').style.display = 'none';
+  toggleSearchVisibility(true);
+};
+
+function toggleSearchVisibility(show) {
+  const displayVal = show ? '' : 'none';
+  document.getElementById('search-seg').style.display = displayVal;
+  document.getElementById('search-input-wrap').style.display = displayVal;
+  document.getElementById('roster').style.display = displayVal;
+  document.getElementById('new-member-btn').style.display = displayVal;
+}
+
+function checkDeviceToken() {
+  const token = localStorage.getItem('spya_device_token');
+  const wrap = document.getElementById('quick-checkin-wrap');
+  if (!token || !rosterCache.length) { 
+    wrap.style.display = 'none'; 
+    toggleSearchVisibility(true);
+    return; 
+  }
+
+  const matched = rosterCache.find(m => m.deviceToken === token);
+  if (matched) {
+    const ci = isCI(matched.id);
+    const fullName = matched.name || ((matched.firstName || '') + ' ' + (matched.lastName || '')).trim();
+    
+    toggleSearchVisibility(false);
+
+    if (ci) {
+      wrap.innerHTML = `
+        <div class="quick-card" style="background:var(--green-light); border-color:var(--green);">
+          <div class="quick-card-text" style="color:var(--green-dark);">👋 Welcome back, ${matched.firstName || fullName}! You are checked in tonight.</div>
+        </div>
+      `;
+    } else {
+      wrap.innerHTML = `
+        <div class="quick-card">
+          <div class="quick-card-text">👋 Welcome back, <strong>${matched.firstName || fullName}</strong>!<br><span style="text-decoration:underline; font-size:11px; color:var(--text-2); cursor:pointer;" onclick="clearDeviceToken()">Not you?</span></div>
+          <button class="btn btn-primary" onclick="checkIn('${matched.id}')" style="width:auto; padding:8px 14px; font-size:13px; flex-shrink:0;">Check In</button>
+        </div>
+      `;
+    }
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+    toggleSearchVisibility(true);
+  }
+}
+
+// ── Roster render ─────────────────────────────────────────────────────────────
+
+function maskName(n) {
+  const parts = n.trim().split(' ');
+  if (parts.length > 1) {
+    return parts[0] + ' ' + parts[parts.length - 1][0] + '.';
+  }
+  return n;
+}
+
+function initials(n) {
+  return n.trim().split(' ').map(p => p[0] || '').join('').toUpperCase().slice(0, 2);
+}
+function isCI(id) { return todayCheckins.some(c => c.memberId === id); }
+
+function renderRoster() {
+  const el = document.getElementById('roster');
+  if (!rosterCache.length) { el.innerHTML = '<div class="loading">Connecting…</div>'; return; }
+
+  let filtered;
+  if (searchMode === 'phone') {
+    if (!phoneSearchHash) {
+      el.innerHTML = '<div class="empty">Enter your full phone number to find yourself</div>';
+      return;
+    }
+    filtered = rosterCache.filter(m => m.phoneHash && m.phoneHash === phoneSearchHash);
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty">No match — try a different number or add yourself below</div>';
+      return;
+    }
+  } else {
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    
+    if (q.length < 1) {
+      el.innerHTML = '<div class="empty">Type a name to search…</div>';
+      return;
+    }
+
+    filtered = rosterCache.filter(m => {
+      const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+      return fullName.toLowerCase().includes(q);
+    });
+    if (!filtered.length) { el.innerHTML = '<div class="empty">No members found</div>'; return; }
+  }
+
+  el.innerHTML = filtered.map(m => {
+    const ci = isCI(m.id);
+    const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+    const displayName = searchMode === 'phone' ? maskName(fullName) : fullName;
+    
+    return '<button class="member-btn ' + (ci ? 'ci' : '') + '" onclick="checkIn(\'' + m.id + '\')">' +
+      '<div class="avatar ' + (ci ? 'green' : '') + '">' + initials(fullName) + '</div>' +
+      '<div style="flex:1;"><div class="member-name">' + displayName + '</div></div>' +
+      (ci ? '<i class="ti ti-check check-icon"></i>' : '') +
+      '</button>';
+  }).join('');
+}
+
+function renderSummary() {
+  document.getElementById('stat-total').textContent = todayCheckins.length;
+  document.getElementById('stat-new').textContent   = todayCheckins.filter(c => c.isNew).length;
+  const sl = document.getElementById('summary-list');
+  if (!todayCheckins.length) { sl.innerHTML = '<div class="empty">No one checked in yet</div>'; return; }
+  sl.innerHTML = todayCheckins.map(c =>
+    '<div class="member-btn static">' +
+    '<div class="avatar green">' + initials(c.memberName || '?') + '</div>' +
+    '<div style="flex:1;"><div class="member-name">' + c.memberName + '</div>' +
+    '<div class="member-sub">' + c.event + (c.isNew ? ' · First time' : '') + '</div></div>' +
+    '<i class="ti ti-check check-icon"></i></div>'
+  ).join('');
+}
+
+// ── Check in ──────────────────────────────────────────────────────────────────
+
+window.checkIn = async function (id) {
+  if (isCI(id)) { showToast('Already checked in', 'err'); return; }
+  const event = document.getElementById('event-type').value;
+  const m = rosterCache.find(r => r.id === id);
+  if (!m) return;
+  
+  const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+  try {
+    await addDoc(collection(db, 'checkins'), {
+      memberId: id, memberName: fullName, date: TODAY, event,
+      isNew: m.isNew || false, ts: Date.now()
+    });
+    if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
+    
+    if (searchMode === 'phone') {
+      await secureDeviceBinding(id);
+    }
+
+    const firstName = m.firstName || fullName.split(' ')[0];
+    triggerSplash(firstName);
+    
+    document.getElementById('search').value = '';
+    renderRoster();
+    
+  } catch (e) { showToast('Check-in failed', 'err'); console.error(e); }
+};
+
+// ── Splash & Toast Helpers ────────────────────────────────────────────────────
+
+function triggerSplash(firstName) {
+  const splash = document.getElementById('splash-screen');
+  document.getElementById('splash-title').textContent = 'Welcome, ' + firstName + '!';
+  splash.style.display = 'flex';
+  
+  setTimeout(() => {
+    splash.style.display = 'none';
+  }, 2500);
+}
+
+// ── Add member ────────────────────────────────────────────────────────────────
+
+window.addMember = async function () {
+  const firstName = document.getElementById('new-first-name').value.trim();
+  const lastName  = document.getElementById('new-last-name').value.trim();
+  const email     = document.getElementById('new-email').value.trim();
+  const phone     = document.getElementById('new-phone').value.trim();
+  const age       = document.getElementById('new-age').value;
+
+  let valid = true;
+  if (!firstName)         { showErr('first-name-err', 'new-first-name'); valid = false; }
+  if (!lastName)          { showErr('last-name-err',  'new-last-name');  valid = false; }
+  if (!isValidEmail(email)) { showErr('email-err', 'new-email'); valid = false; }
+  if (!isValidPhone(phone)) { showErr('phone-err', 'new-phone'); valid = false; }
+  if (!valid) return;
+
+  try {
+    const name = firstName + ' ' + lastName;
+    const phoneHash = phone ? await hashPhone(phone) : null;
+    
+    const existingMember = rosterCache.find(m => {
+      const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+      const sameName = fullName.toLowerCase() === name.toLowerCase();
+      const samePhone = phoneHash && m.phoneHash === phoneHash;
+      
+      return samePhone || (sameName && !phoneHash);
+    });
+
+    if (existingMember) {
+      if (existingMember.isNew) {
+        existingMember.isNew = false;
+        await updateDoc(doc(db, 'roster', existingMember.id), { isNew: false });
+      }
+      
+      await secureDeviceBinding(existingMember.id);
+      closeNewMemberForm();
+      await window.checkIn(existingMember.id);
+      return;
+    }
+
+    const ref = doc(collection(db, 'roster'));
+    const rosterDoc = { 
+      firstName, 
+      lastName, 
+      name, 
+      isNew: true, 
+      joined: TODAY 
+    };
+    
+    if (phoneHash) rosterDoc.phoneHash = phoneHash;
+    await setDoc(ref, rosterDoc);
+    
+    if (email || phone || age) {
+      await setDoc(doc(db, 'contacts', ref.id), {
+        email: email || '', phone: phone || '', ageBracket: age || ''
+      });
+    }
+
+    await secureDeviceBinding(ref.id);
+    closeNewMemberForm();
+    await window.checkIn(ref.id);
+  } catch (e) { showToast('Could not add member', 'err'); console.error(e); }
 };
 
 function showToast(msg, type = 'ok') {
@@ -322,6 +630,14 @@ function showToast(msg, type = 'ok') {
   t.textContent = msg; t.className = 'toast ' + type + ' show';
   setTimeout(() => t.classList.remove('show'), 2400);
 }
+
+window.showTab = function (tab) {
+  ['checkin'].forEach(t => {
+    document.getElementById('view-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('tab-' + t).className = 'tab' + (t === tab ? ' active' : '');
+  });
+  if (tab !== 'checkin') closeNewMemberForm();
+};
 </script>
 </body>
 </html>
