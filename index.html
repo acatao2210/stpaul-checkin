@@ -45,7 +45,6 @@
     .search-wrap { position:relative; margin-bottom:0.75rem; }
     .search-wrap i { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--text-3); pointer-events:none; }
     .search-wrap input { padding-left:34px; }
-    .event-select { margin-bottom:1.25rem; }
 
     /* Buttons */
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:9px 14px; font-size:14px; font-family:inherit; font-weight:500; border-radius:var(--radius); cursor:pointer; border:none; transition:opacity 0.15s, background 0.15s; }
@@ -128,14 +127,7 @@
   <div id="view-checkin">
 
     <div id="checkin-main">
-       <select class="event-select" id="event-type">
-        <option>Wednesday Night</option>
-        <option>Mass</option>
-        <option>Service Day</option>
-        <option>Social Event</option>
-        <option>Faith Formation</option>
-        <option>Other</option>
-      </select> 
+       
 
       <div id="quick-checkin-wrap" style="display:none; margin-bottom:1rem;"></div>
 
@@ -194,14 +186,30 @@
         <p class="field-err" id="phone-err">Enter a 10-digit phone number.</p>
       </div>
 
-      <div class="field">
-        <label>Age bracket</label>
-        <select id="new-age">
-          <option value="">Select…</option>
-          <option value="20-29">20–29</option>
-          <option value="30-39">30–39</option>
-        </select>
-      </div>
+<div class="field" style="display: flex; gap: 10px;">
+  <div style="flex: 1;">
+    <label>Month</label>
+    <select id="new-birth-month">
+      <option value="">Month</option>
+      <option value="01">January</option>
+      <option value="02">February</option>
+      <option value="03">March</option>
+      <option value="04">April</option>
+      <option value="05">May</option>
+      <option value="06">June</option>
+      <option value="07">July</option>
+      <option value="08">August</option>
+      <option value="09">September</option>
+      <option value="10">October</option>
+      <option value="11">November</option>
+      <option value="12">December</option>
+    </select>
+  </div>
+  <div style="flex: 1;">
+    <label>Year</label>
+    <input type="number" id="new-birth-year" placeholder="YYYY" min="1900" max="2026" />
+  </div>
+</div>
 
       <div class="form-actions">
         <button class="btn btn-primary" onclick="addMember()">Add &amp; check in</button>
@@ -529,15 +537,19 @@ function renderSummary() {
 
 window.checkIn = async function (id) {
   if (isCI(id)) { showToast('Already checked in', 'err'); return; }
-  const event = document.getElementById('event-type').value;
+  const event = "Attendance";
   const m = rosterCache.find(r => r.id === id);
   if (!m) return;
   
   const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
   try {
     await addDoc(collection(db, 'checkins'), {
-      memberId: id, memberName: fullName, date: TODAY, event,
-      isNew: m.isNew || false, ts: Date.now()
+      memberId: id, 
+      memberName: fullName, 
+      date: TODAY, event,
+      isNew: m.isNew || false, 
+      ts: Date.now(),
+      userAgent: navigator.userAgent || 'unknown'
     });
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     
