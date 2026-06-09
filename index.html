@@ -242,7 +242,7 @@
 import { initializeApp }                       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInAnonymously }          from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, doc,
-         addDoc, setDoc, updateDoc,
+         addDoc, setDoc, updateDoc, getDoc,
          onSnapshot, query, orderBy, where }   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -533,6 +533,16 @@ function renderSummary() {
   ).join('');
 }
 
+// ── Age bracket ───────────────────────────────────────────────────────────────
+
+function getAgeBracket(birthYear) {
+  if (!birthYear) return null;
+  const age = new Date().getFullYear() - parseInt(birthYear);
+  if (age >= 20 && age <= 29) return "20-29";
+  if (age >= 30 && age <= 39) return "30-39";
+  return null;
+}
+
 // ── Check in ──────────────────────────────────────────────────────────────────
 
 window.checkIn = async function (id) {
@@ -542,15 +552,25 @@ window.checkIn = async function (id) {
   if (!m) return;
   
   const fullName = m.name || ((m.firstName || '') + ' ' + (m.lastName || '')).trim();
+
+  // Silently fetch age bracket from contacts (single lightweight read)
+  let ageBracket = null;
   try {
-    await addDoc(collection(db, 'checkins'), {
+    const contactSnap = await getDoc(doc(db, 'contacts', id));
+    if (contactSnap.exists()) ageBracket = getAgeBracket(contactSnap.data().birthYear);
+  } catch (_) { /* non-blocking — checkin still proceeds without bracket */ }
+
+  try {
+    const checkinData = {
       memberId: id, 
       memberName: fullName, 
       date: TODAY, event,
       isNew: m.isNew || false, 
       ts: Date.now(),
       userAgent: navigator.userAgent || 'unknown'
-    });
+    };
+    if (ageBracket) checkinData.ageBracket = ageBracket;
+    await addDoc(collection(db, 'checkins'), checkinData);
     if (m.isNew) await updateDoc(doc(db, 'roster', id), { isNew: false });
     
     if (searchMode === 'phone') {
