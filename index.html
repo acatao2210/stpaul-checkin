@@ -585,7 +585,8 @@ window.addMember = async function () {
   const lastName  = document.getElementById('new-last-name').value.trim();
   const email     = document.getElementById('new-email').value.trim();
   const phone     = document.getElementById('new-phone').value.trim();
-  const age       = document.getElementById('new-age').value;
+  const month = document.getElementById('new-birth-month').value;
+  const year = document.getElementById('new-birth-year').value;
 
   let valid = true;
   if (!firstName)         { showErr('first-name-err', 'new-first-name'); valid = false; }
@@ -630,9 +631,11 @@ window.addMember = async function () {
     if (phoneHash) rosterDoc.phoneHash = phoneHash;
     await setDoc(ref, rosterDoc);
     
-    if (email || phone || age) {
+    if (email || phone || month || year) {
       await setDoc(doc(db, 'contacts', ref.id), {
-        email: email || '', phone: phone || '', ageBracket: age || ''
+        email: email || '', phone: phone || '', 
+        birthMonth: month || '', 
+        birthYear: year || ''    
       });
     }
 
