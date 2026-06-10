@@ -260,9 +260,12 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-const TODAY = new Date().toISOString().slice(0, 10);
-document.getElementById('date-label').textContent = new Date().toLocaleDateString('en-US', {
-  weekday: 'long', month: 'long', day: 'numeric'
+// Use a fixed UTC-5 offset for all date/time values so the date
+// never rolls over based on the viewer's local clock or UTC.
+const _now = new Date(Date.now() - 5 * 60 * 60 * 1000);
+const TODAY = _now.toISOString().slice(0, 10);
+document.getElementById('date-label').textContent = _now.toLocaleDateString('en-US', {
+  timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric'
 });
 
 let rosterCache = [], todayCheckins = [];
@@ -575,6 +578,7 @@ window.checkIn = async function (id) {
       date: TODAY, event,
       isNew: m.isNew || false, 
       ts: Date.now(),
+      time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(11, 16),
       userAgent: navigator.userAgent || 'unknown'
     };
     if (ageBracket) checkinData.ageBracket = ageBracket;
